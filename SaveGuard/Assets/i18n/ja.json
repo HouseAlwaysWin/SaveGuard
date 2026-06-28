@@ -1,0 +1,71 @@
+{
+  "App.Tagline": "あらゆるゲームのセーブをバージョン管理してバックアップ",
+  "Rail.AddGame": "+  ゲームを追加",
+  "Rail.Language": "言語",
+
+  "Header.DeleteGame": "ゲームを削除",
+  "Watch.Off": "自動バックアップ オフ",
+  "Watch.Watching": "監視中 — セーブ時にバックアップ",
+  "Watch.Idle": "自動バックアップ オン（待機中）",
+
+  "Section.Folders": "フォルダー",
+  "Folders.WatchLabel": "監視するセーブフォルダー",
+  "Folders.WatchWatermark": "例：ゲームの Savegames フォルダー",
+  "Folders.BackupLabel": "バックアップの保存先（セーブフォルダーの外にすること）",
+  "Folders.BackupWatermark": "スナップショットの書き込み先",
+  "Common.Browse": "参照…",
+
+  "Section.HowItBacksUp": "バックアップの方法",
+  "How.KeepCount": "保持するバックアップ数",
+  "How.WaitMs": "最終書き込み後の待機（ミリ秒）",
+  "How.TriggerTypes": "この種類のみで実行（任意）",
+  "How.TriggerWatermark": ".lsv, .sav （空欄＝すべての変更）",
+  "How.IncludeSubfolders": "サブフォルダーを含む",
+  "How.AutoBackup": "ゲームがセーブしたら自動バックアップ",
+  "How.ImageTypes": "この種類のプレビュー画像を表示（任意）",
+  "How.ImageWatermark": ".png, .webp （空欄＝表示しない）",
+
+  "Section.Backups": "バックアップ",
+  "Backups.OpenFolder": "フォルダーを開く",
+  "Backups.BackupNow": "今すぐバックアップ",
+  "Backups.OpenThis": "このバックアップを開く",
+  "Common.Delete": "削除",
+  "Backups.RestoreThis": "このバックアップを復元",
+
+  "Empty.Title": "ゲームが選択されていません",
+  "Empty.Subtitle": "ゲームを追加して、セーブの保護を始めましょう。",
+
+  "Tray.Open": "SaveGuard を開く",
+  "Tray.Quit": "SaveGuard を終了",
+
+  "Profile.New": "新しいプロファイル",
+
+  "Status.Ready": "準備完了。",
+  "Status.SetWatchFolder": "監視フォルダーを設定して、セーブの保護を始めましょう。",
+  "Status.ProfileRemoved": "プロファイルを削除しました。バックアップファイルはディスクに残っています。",
+  "Status.BackingUp": "バックアップ中…",
+  "Status.BackedUp": "{1} に {0} 個のファイルをバックアップしました。",
+  "Status.BackupFailed": "バックアップに失敗しました：{0}",
+  "Status.Restoring": "復元中…",
+  "Status.Restored": "{0} のバックアップを復元しました。復元前の安全コピーを保存済みです。",
+  "Status.RestoreFailed": "復元に失敗しました：{0}",
+  "Status.BackupDeleted": "バックアップを削除しました。",
+  "Status.DeleteFailed": "削除できませんでした：{0}",
+  "Status.AutoBackedUp": "{0} を自動バックアップしました（{1}、{2} 個のファイル）。",
+  "Status.AutoBackupFailed": "{0} の自動バックアップに失敗しました：{1}",
+
+  "Dialog.DeleteProfile.Title": "プロファイルを削除",
+  "Dialog.DeleteProfile.Body": "「{0}」を SaveGuard から削除しますか？\n\n既存のバックアップファイルは削除されません。",
+  "Dialog.Restore.Title": "このバックアップを復元",
+  "Dialog.Restore.Body": "現在のセーブフォルダーをこのバックアップで置き換えますか？\n{0}\n\n現在のセーブはまずスナップショット（「pre-restore」）として保存されるため、この操作は元に戻せます。",
+  "Dialog.DeleteBackup.Title": "バックアップを削除",
+  "Dialog.DeleteBackup.Body": "{0} のこのバックアップを完全に削除しますか？",
+  "Dialog.Confirm": "OK",
+  "Dialog.Cancel": "キャンセル",
+
+  "Picker.WatchTitle": "ゲームのセーブフォルダーを選択",
+  "Picker.BackupTitle": "バックアップの保存先を選択",
+
+  "Update.Ready": "アップデート {0} の準備完了",
+  "Update.Restart": "再起動して更新"
+}

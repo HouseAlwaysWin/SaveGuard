@@ -41,6 +41,22 @@
             <Setter Property="Padding" Value="16" />
         </Style>
 
+        <!-- Accordion section: an Expander dressed up like the .card surface. -->
+        <Style Selector="Expander.section">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Expander.section /template/ ToggleButton#PART_toggle">
+            <Setter Property="Padding" Value="16,12" />
+        </Style>
+        <Style Selector="Expander.section /template/ ToggleButton#ExpanderHeader">
+            <Setter Property="Padding" Value="16,12" />
+        </Style>
+
         <Style Selector="TextBlock.eyebrow">
             <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
             <Setter Property="FontSize" Value="11" />

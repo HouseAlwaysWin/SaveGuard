@@ -39,7 +39,7 @@ Views/
 
 ## 建置與執行
 
-需要 .NET 8 SDK。
+需要 .NET 10 SDK。
 
 ```bash
 cd SaveGuard/SaveGuard
