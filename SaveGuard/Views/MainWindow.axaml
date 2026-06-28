@@ -132,7 +132,7 @@
                                 <TextBlock Classes="field" Text="{loc:Loc Folders.WatchLabel}" />
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBox Grid.Column="0" Text="{Binding SelectedProfile.WatchPath}"
-                                             Watermark="{loc:Loc Folders.WatchWatermark}" />
+                                             PlaceholderText="{loc:Loc Folders.WatchWatermark}" />
                                     <Button Grid.Column="1" Classes="ghost" Content="{loc:Loc Common.Browse}"
                                             Margin="8,0,0,0"
                                             Command="{Binding BrowseWatchCommand}" />
@@ -143,7 +143,7 @@
                                 <TextBlock Classes="field" Text="{loc:Loc Folders.BackupLabel}" />
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBox Grid.Column="0" Text="{Binding SelectedProfile.BackupRoot}"
-                                             Watermark="{loc:Loc Folders.BackupWatermark}" />
+                                             PlaceholderText="{loc:Loc Folders.BackupWatermark}" />
                                     <Button Grid.Column="1" Classes="ghost" Content="{loc:Loc Common.Browse}"
                                             Margin="8,0,0,0"
                                             Command="{Binding BrowseBackupCommand}" />
@@ -175,7 +175,7 @@
                                 <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,14,0,0">
                                     <TextBlock Classes="field" Text="{loc:Loc How.TriggerTypes}" />
                                     <TextBox Text="{Binding SelectedProfile.TriggerExtensions}"
-                                             Watermark="{loc:Loc How.TriggerWatermark}" />
+                                             PlaceholderText="{loc:Loc How.TriggerWatermark}" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Row="1" Grid.Column="1" Spacing="10" VerticalAlignment="Bottom" Margin="20,14,0,0">
@@ -190,7 +190,7 @@
                                 <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4" Margin="0,14,0,0">
                                     <TextBlock Classes="field" Text="{loc:Loc How.ImageTypes}" />
                                     <TextBox Text="{Binding SelectedProfile.ImageExtensions}"
-                                             Watermark="{loc:Loc How.ImageWatermark}" />
+                                             PlaceholderText="{loc:Loc How.ImageWatermark}" />
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
