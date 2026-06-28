@@ -101,8 +101,8 @@
                         </StackPanel>
                     </Grid>
 
-                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" MinHeight="84" MaxHeight="150">
-                        <Border Grid.Column="0" Background="{StaticResource InkBaseBrush}"
+                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" MinHeight="84" MaxHeight="150">
+                        <Border Grid.Column="1" Background="{StaticResource InkBaseBrush}"
                                 BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
                                 CornerRadius="8" Padding="2">
                             <ListBox ItemsSource="{Binding Snapshots}"
@@ -129,7 +129,7 @@
                         </Border>
 
                         <!-- save preview: shown only when a matching image exists -->
-                        <Border Grid.Column="1" Width="200" Margin="10,0,0,0"
+                        <Border Grid.Column="0" Width="200" Margin="0,0,10,0"
                                 IsVisible="{Binding HasPreviewImage}"
                                 Background="{StaticResource InkBaseBrush}"
                                 BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
