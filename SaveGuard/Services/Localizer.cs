@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Text.Json;
 using Avalonia.Platform;
 
@@ -8,12 +7,12 @@ namespace SaveGuard.Services;
 
 /// <summary>
 /// Tiny runtime localization service. Strings live in <c>Assets/i18n/{code}.json</c>
-/// and are looked up by key via the indexer, so XAML can bind
-/// <c>{loc:Loc Some.Key}</c> and the whole UI re-translates the instant the language
-/// changes (we raise the indexer PropertyChanged). Missing keys fall back to English,
-/// then to the key itself, so nothing ever renders blank.
+/// and are looked up by key. XAML binds <c>{loc:Loc Some.Key}</c>, which subscribes to
+/// a per-key observable that re-emits whenever the language changes — so the whole UI
+/// re-translates live. Missing keys fall back to English, then the key itself, so
+/// nothing ever renders blank.
 /// </summary>
-public sealed class Localizer : INotifyPropertyChanged
+public sealed class Localizer
 {
     public static Localizer Instance { get; } = new();
 
@@ -32,10 +31,8 @@ public sealed class Localizer : INotifyPropertyChanged
     private Dictionary<string, string> _fallback = new();
     private string _currentLanguage = "en";
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    /// <summary>Raised after the language changes, so view-models can re-emit any
-    /// strings they compute in code (watch-state label, status text, …).</summary>
+    /// <summary>Raised after the language changes — drives the {loc:Loc} bindings and
+    /// lets view-models re-emit strings they compute in code.</summary>
     public event Action? CultureChanged;
 
     private Localizer()
@@ -71,8 +68,6 @@ public sealed class Localizer : INotifyPropertyChanged
         if (code == _currentLanguage && _current.Count > 0) return;
         _currentLanguage = code;
         _current = _all[code];
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentLanguage)));
         CultureChanged?.Invoke();
     }
 
