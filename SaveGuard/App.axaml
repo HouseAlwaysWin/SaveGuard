@@ -1,0 +1,87 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveGuard.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Palette: cool slate "vault" with a warm guard-gold accent.
+                 Saves are treasure worth protecting — gold on ink, deliberately
+                 not the usual cream/serif or acid-green default. -->
+            <Color x:Key="InkBase">#15171C</Color>
+            <Color x:Key="Surface">#1E2128</Color>
+            <Color x:Key="SurfaceRaised">#252934</Color>
+            <Color x:Key="Hairline">#30353F</Color>
+            <Color x:Key="TextPrimary">#E7E9ED</Color>
+            <Color x:Key="TextMuted">#8B93A0</Color>
+            <Color x:Key="GuardGold">#E0A24E</Color>
+            <Color x:Key="Watching">#6FB58A</Color>
+            <Color x:Key="Danger">#D9756B</Color>
+
+            <SolidColorBrush x:Key="InkBaseBrush" Color="{StaticResource InkBase}" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Surface}" />
+            <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaised}" />
+            <SolidColorBrush x:Key="HairlineBrush" Color="{StaticResource Hairline}" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}" />
+            <SolidColorBrush x:Key="GuardGoldBrush" Color="{StaticResource GuardGold}" />
+            <SolidColorBrush x:Key="WatchingBrush" Color="{StaticResource Watching}" />
+            <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}" />
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <Style Selector="TextBlock.eyebrow">
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LetterSpacing" Value="1.5" />
+        </Style>
+
+        <Style Selector="TextBlock.field">
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource GuardGoldBrush}" />
+            <Setter Property="Foreground" Value="#1A1206" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,9" />
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#EBB572" />
+        </Style>
+
+        <Style Selector="Button.ghost">
+            <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14,9" />
+        </Style>
+
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14,9" />
+        </Style>
+    </Application.Styles>
+
+</Application>
