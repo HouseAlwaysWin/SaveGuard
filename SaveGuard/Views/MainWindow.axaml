@@ -64,9 +64,11 @@
 
         <!-- ============ RIGHT: editor + snapshots ============ -->
         <Grid Grid.Column="1" RowDefinitions="*,Auto" Margin="0">
-            <!-- Editor (top) scrolls if needed; the backups card below fills the
-                 remaining height and keeps its action buttons pinned & visible. -->
-            <Grid Grid.Row="0" RowDefinitions="Auto,*" IsVisible="{Binding HasProfile}">
+            <!-- Editor (top) scrolls within its own bounded region; the backups
+                 card below keeps its action buttons pinned & visible. Both rows are
+                 star-sized: a ScrollViewer in an Auto row measures unbounded and
+                 breaks both the vertical split and the horizontal width. -->
+            <Grid Grid.Row="0" RowDefinitions="3*,2*" IsVisible="{Binding HasProfile}">
 
             <ScrollViewer Grid.Row="0" Padding="24,22,24,6"
                           VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
