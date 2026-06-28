@@ -5,8 +5,8 @@
         xmlns:v="using:SaveGuard.Views"
         x:Class="SaveGuard.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Width="980" Height="680"
-        MinWidth="820" MinHeight="560"
+        Width="980" Height="760"
+        MinWidth="820" MinHeight="680"
         Title="SaveGuard"
         Background="{StaticResource InkBaseBrush}">
 
@@ -64,8 +64,13 @@
 
         <!-- ============ RIGHT: editor + snapshots ============ -->
         <Grid Grid.Column="1" RowDefinitions="*,Auto" Margin="0">
-            <ScrollViewer Grid.Row="0" Padding="24,22,24,12">
-                <StackPanel Spacing="18" IsVisible="{Binding HasProfile}">
+            <!-- Editor (top) scrolls if needed; the backups card below fills the
+                 remaining height and keeps its action buttons pinned & visible. -->
+            <Grid Grid.Row="0" RowDefinitions="Auto,*" IsVisible="{Binding HasProfile}">
+
+            <ScrollViewer Grid.Row="0" Padding="24,22,24,6"
+                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="18">
 
                     <!-- header: name + watch state -->
                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -156,63 +161,65 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- backups card -->
-                    <Border Classes="card">
-                        <StackPanel Spacing="14">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Classes="eyebrow" Text="BACKUPS"
-                                           VerticalAlignment="Center" />
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                    <Button Classes="ghost" Content="Open folder"
-                                            Command="{Binding OpenBackupFolderCommand}" />
-                                    <Button Classes="primary" Content="Back up now"
-                                            Command="{Binding BackupNowCommand}"
-                                            IsEnabled="{Binding !Busy}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Border Background="{StaticResource InkBaseBrush}"
-                                    BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
-                                    CornerRadius="8" MinHeight="160" MaxHeight="300" Padding="2">
-                                <ListBox ItemsSource="{Binding Snapshots}"
-                                         SelectedItem="{Binding SelectedSnapshot}"
-                                         Background="Transparent" BorderThickness="0"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate x:DataType="m:Snapshot">
-                                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">
-                                                <Border Grid.Column="0" Width="7" CornerRadius="3"
-                                                        Margin="0,1,12,1"
-                                                        Background="{Binding Label, Converter={StaticResource LabelBrush}}" />
-                                                <StackPanel Grid.Column="1" Spacing="1">
-                                                    <TextBlock Text="{Binding TakenAtDisplay}"
-                                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                                               FontSize="13" FontWeight="SemiBold" />
-                                                    <TextBlock Text="{Binding SubLine}"
-                                                               Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
-                                                </StackPanel>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-
-                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-                                <Button Classes="ghost" Content="Open this backup"
-                                        Command="{Binding OpenSnapshotFolderCommand}"
-                                        IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                                <Button Classes="danger" Content="Delete"
-                                        Command="{Binding DeleteSnapshotCommand}"
-                                        IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                                <Button Classes="primary" Content="Restore this backup"
-                                        Command="{Binding RestoreSelectedCommand}"
-                                        IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
                 </StackPanel>
             </ScrollViewer>
+
+                <!-- backups card: list flexes to fill, action buttons pinned at the bottom -->
+                <Border Grid.Row="1" Classes="card" Margin="24,0,24,12">
+                    <Grid RowDefinitions="Auto,*,Auto">
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                            <TextBlock Grid.Column="0" Classes="eyebrow" Text="BACKUPS"
+                                       VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button Classes="ghost" Content="Open folder"
+                                        Command="{Binding OpenBackupFolderCommand}" />
+                                <Button Classes="primary" Content="Back up now"
+                                        Command="{Binding BackupNowCommand}"
+                                        IsEnabled="{Binding !Busy}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Grid.Row="1" Background="{StaticResource InkBaseBrush}"
+                                BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
+                                CornerRadius="8" MinHeight="80" Padding="2">
+                            <ListBox ItemsSource="{Binding Snapshots}"
+                                     SelectedItem="{Binding SelectedSnapshot}"
+                                     Background="Transparent" BorderThickness="0"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="m:Snapshot">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">
+                                            <Border Grid.Column="0" Width="7" CornerRadius="3"
+                                                    Margin="0,1,12,1"
+                                                    Background="{Binding Label, Converter={StaticResource LabelBrush}}" />
+                                            <StackPanel Grid.Column="1" Spacing="1">
+                                                <TextBlock Text="{Binding TakenAtDisplay}"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                                           FontSize="13" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding SubLine}"
+                                                           Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Right" Margin="0,12,0,0">
+                            <Button Classes="ghost" Content="Open this backup"
+                                    Command="{Binding OpenSnapshotFolderCommand}"
+                                    IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <Button Classes="danger" Content="Delete"
+                                    Command="{Binding DeleteSnapshotCommand}"
+                                    IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <Button Classes="primary" Content="Restore this backup"
+                                    Command="{Binding RestoreSelectedCommand}"
+                                    IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
 
             <!-- empty state -->
             <StackPanel Grid.Row="0" IsVisible="{Binding !HasProfile}"
