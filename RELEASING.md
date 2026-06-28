@@ -5,12 +5,20 @@ the update feed. Publishing a new version is one push.
 
 ## Cut a release
 
+Easiest — use the helper (creates + pushes the tag, replacing it if it already exists):
+
+```bat
+release.bat v1.0.1
+```
+
+Or do it by hand:
+
 ```bash
 git tag v1.0.1
 git push origin v1.0.1
 ```
 
-That triggers `.github/workflows/release.yml`, which:
+Either way, pushing the tag triggers `.github/workflows/release.yml`, which:
 
 1. Publishes a self-contained `win-x64` build.
 2. Packs it with the Velopack CLI (`vpk pack`) — producing `Setup.exe`, the
