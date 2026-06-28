@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveGuard.Models;
@@ -18,6 +21,21 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly ProfileStore _store;
     private readonly BackupEngine _engine;
     private readonly WatchService _watcher;
+    private readonly UiStateStore _uiStore;
+    private readonly UiState _ui;
+
+    // ---- auto-save (debounced) ----
+    private readonly DispatcherTimer _saveTimer;
+    private bool _watcherDirty;            // a watcher-relevant field changed since last flush
+    private GameProfile? _pendingProfile;  // the profile whose watcher needs refreshing
+
+    /// <summary>Profile fields that, when changed, require rebuilding the file watcher.</summary>
+    private static readonly HashSet<string> WatcherProps = new()
+    {
+        nameof(GameProfile.WatchPath), nameof(GameProfile.Recursive),
+        nameof(GameProfile.TriggerExtensions), nameof(GameProfile.DebounceMs),
+        nameof(GameProfile.AutoWatch),
+    };
 
     /// <summary>Set by the View. Opens a folder picker, returns the chosen path or null.</summary>
     public Func<string, Task<string?>>? PickFolder { get; set; }
@@ -43,6 +61,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasPreviewImage))]
     private Bitmap? _previewImage;
 
+    // Accordion fold state — persisted so it survives restart / tray hide-restore.
+    [ObservableProperty] private bool _foldersExpanded;
+    [ObservableProperty] private bool _optionsExpanded;
+    [ObservableProperty] private bool _backupsExpanded;
+
     public bool HasProfile => SelectedProfile != null;
 
     public bool HasPreviewImage => PreviewImage != null;
@@ -57,13 +80,21 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public MainWindowViewModel(ProfileStore store, BackupEngine engine, WatchService watcher)
+    public MainWindowViewModel(ProfileStore store, BackupEngine engine, WatchService watcher, UiStateStore uiStore)
     {
         _store = store;
         _engine = engine;
         _watcher = watcher;
+        _uiStore = uiStore;
 
         _watcher.BackupCompleted += OnAutoBackupCompleted;
+
+        // Restore persisted accordion fold state (set backing fields directly so the
+        // generated change handlers don't re-save during construction).
+        _ui = _uiStore.Load();
+        _foldersExpanded = _ui.FoldersExpanded;
+        _optionsExpanded = _ui.OptionsExpanded;
+        _backupsExpanded = _ui.BackupsExpanded;
 
         foreach (var p in _store.Load())
             Profiles.Add(p);
@@ -73,6 +104,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         // Begin watching any auto-watch profiles.
         foreach (var p in Profiles)
             _watcher.Start(p);
+
+        // Auto-save: persist (and refresh the watcher) shortly after edits settle,
+        // so typing doesn't write on every keystroke or thrash the FileSystemWatcher.
+        _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+        _saveTimer.Tick += (_, _) => FlushSave();
+        Profiles.CollectionChanged += OnProfilesChanged;
+        foreach (var p in Profiles) Hook(p);
     }
 
     partial void OnSelectedProfileChanged(GameProfile? value) => RefreshSnapshots();
@@ -170,7 +208,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         };
         Profiles.Add(p);
         SelectedProfile = p;
-        Status = "Set the watch folder, then save the profile.";
+        Status = "Set the watch folder to start protecting its saves.";
     }
 
     [RelayCommand]
@@ -189,22 +227,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void SaveProfile()
-    {
-        if (SelectedProfile == null) return;
-        var err = BackupEngine.ValidateProfile(SelectedProfile);
-        if (err != null)
-        {
-            Status = err;
-            return;
-        }
-        Persist();
-        _watcher.Refresh(SelectedProfile);
-        RefreshSnapshots();
-        Status = $"Saved. {WatchStateLabel}.";
-    }
-
-    [RelayCommand]
     private async Task BrowseWatch()
     {
         if (SelectedProfile == null || PickFolder == null) return;
@@ -218,17 +240,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (SelectedProfile == null || PickFolder == null) return;
         var path = await PickFolder("Choose where to store backups");
         if (path != null) SelectedProfile.BackupRoot = path;
-    }
-
-    [RelayCommand]
-    private void ToggleWatch()
-    {
-        if (SelectedProfile == null) return;
-        SelectedProfile.AutoWatch = !SelectedProfile.AutoWatch;
-        _watcher.Refresh(SelectedProfile);
-        Persist();
-        OnPropertyChanged(nameof(WatchStateLabel));
-        Status = SelectedProfile.AutoWatch ? "Auto-backup on." : "Auto-backup off.";
     }
 
     // ---------- backup / restore commands ----------
@@ -338,4 +349,64 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     }
 
     private void Persist() => _store.Save(Profiles);
+
+    // ---------- auto-save plumbing ----------
+
+    private void OnProfilesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems != null) foreach (GameProfile p in e.OldItems) Unhook(p);
+        if (e.NewItems != null) foreach (GameProfile p in e.NewItems) Hook(p);
+        ScheduleSave(watcherRelevant: false, profile: null); // the list shape changed → persist
+    }
+
+    private void Hook(GameProfile p) => p.PropertyChanged += OnProfilePropertyChanged;
+    private void Unhook(GameProfile p) => p.PropertyChanged -= OnProfilePropertyChanged;
+
+    private void OnProfilePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        var p = sender as GameProfile;
+        bool watcherRelevant = e.PropertyName != null && WatcherProps.Contains(e.PropertyName);
+        // Reflect Name/AutoWatch edits in the header label immediately (the watcher
+        // itself only rebuilds on the debounced flush).
+        if (ReferenceEquals(p, SelectedProfile) &&
+            (e.PropertyName == nameof(GameProfile.Name) || e.PropertyName == nameof(GameProfile.AutoWatch)))
+            OnPropertyChanged(nameof(WatchStateLabel));
+        ScheduleSave(watcherRelevant, p);
+    }
+
+    /// <summary>Restart the quiet-window timer; remember if a watcher rebuild is owed.</summary>
+    private void ScheduleSave(bool watcherRelevant, GameProfile? profile)
+    {
+        if (watcherRelevant) { _watcherDirty = true; _pendingProfile = profile; }
+        _saveTimer.Stop();
+        _saveTimer.Start();
+    }
+
+    private void FlushSave()
+    {
+        _saveTimer.Stop();
+        Persist();
+        if (_watcherDirty)
+        {
+            var p = _pendingProfile;
+            _watcherDirty = false;
+            _pendingProfile = null;
+            if (p != null)
+            {
+                _watcher.Refresh(p); // Refresh→Start→ValidateProfile gates invalid/half-typed paths
+                OnPropertyChanged(nameof(WatchStateLabel));
+                if (ReferenceEquals(p, SelectedProfile)) RefreshSnapshots();
+            }
+        }
+    }
+
+    // ---------- fold-state persistence ----------
+    // Folds toggle on deliberate clicks (never per-keystroke), so saving immediately
+    // is cheap and robust against a hard kill.
+
+    partial void OnFoldersExpandedChanged(bool value) { _ui.FoldersExpanded = value; SaveUi(); }
+    partial void OnOptionsExpandedChanged(bool value) { _ui.OptionsExpanded = value; SaveUi(); }
+    partial void OnBackupsExpandedChanged(bool value) { _ui.BackupsExpanded = value; SaveUi(); }
+
+    private void SaveUi() => _uiStore.Save(_ui);
 }
