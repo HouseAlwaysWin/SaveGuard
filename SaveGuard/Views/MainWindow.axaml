@@ -197,7 +197,7 @@
                                         IsEnabled="{Binding !Busy}" />
                             </StackPanel>
 
-                            <Grid ColumnDefinitions="Auto,*" MinHeight="84" MaxHeight="220">
+                            <Grid ColumnDefinitions="Auto,*" MinHeight="120" MaxHeight="340">
                                 <Border Grid.Column="1" Background="{StaticResource InkBaseBrush}"
                                         BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
                                         CornerRadius="8" Padding="2">
@@ -226,6 +226,7 @@
 
                                 <!-- save preview: shown only when a matching image exists -->
                                 <Border Grid.Column="0" Width="200" Margin="0,0,10,0"
+                                        VerticalAlignment="Top"
                                         IsVisible="{Binding HasPreviewImage}"
                                         Background="{StaticResource InkBaseBrush}"
                                         BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
