@@ -26,15 +26,23 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     // ---- auto-save (debounced) ----
     private readonly DispatcherTimer _saveTimer;
-    private bool _watcherDirty;            // a watcher-relevant field changed since last flush
-    private GameProfile? _pendingProfile;  // the profile whose watcher needs refreshing
+    private bool _watcherDirty;    // a watcher-relevant field changed since last flush
+    private bool _snapshotsDirty;  // a field that changes which backups are listed/previewed
 
-    /// <summary>Profile fields that, when changed, require rebuilding the file watcher.</summary>
+    /// <summary>Fields that, when changed, require rebuilding the file watcher.</summary>
     private static readonly HashSet<string> WatcherProps = new()
     {
         nameof(GameProfile.WatchPath), nameof(GameProfile.Recursive),
         nameof(GameProfile.TriggerExtensions), nameof(GameProfile.DebounceMs),
         nameof(GameProfile.AutoWatch),
+    };
+
+    /// <summary>Fields that change which snapshots are listed or which image previews —
+    /// editing any of these must re-read the backups list (e.g. fixing BackupRoot).</summary>
+    private static readonly HashSet<string> SnapshotProps = new()
+    {
+        nameof(GameProfile.WatchPath), nameof(GameProfile.BackupRoot),
+        nameof(GameProfile.Name), nameof(GameProfile.ImageExtensions),
     };
 
     /// <summary>Set by the View. Opens a folder picker, returns the chosen path or null.</summary>
@@ -356,7 +364,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (e.OldItems != null) foreach (GameProfile p in e.OldItems) Unhook(p);
         if (e.NewItems != null) foreach (GameProfile p in e.NewItems) Hook(p);
-        ScheduleSave(watcherRelevant: false, profile: null); // the list shape changed → persist
+        ScheduleSave(); // the list shape changed → persist
     }
 
     private void Hook(GameProfile p) => p.PropertyChanged += OnProfilePropertyChanged;
@@ -364,27 +372,27 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private void OnProfilePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var p = sender as GameProfile;
-        bool watcherRelevant = e.PropertyName != null && WatcherProps.Contains(e.PropertyName);
+        var name = e.PropertyName;
+        if (name != null && WatcherProps.Contains(name)) _watcherDirty = true;
+        if (name != null && SnapshotProps.Contains(name)) _snapshotsDirty = true;
         // Reflect Name/AutoWatch edits in the header label immediately (the watcher
         // itself only rebuilds on the debounced flush).
-        if (ReferenceEquals(p, SelectedProfile) &&
-            (e.PropertyName == nameof(GameProfile.Name) || e.PropertyName == nameof(GameProfile.AutoWatch)))
+        if (ReferenceEquals(sender, SelectedProfile) &&
+            (name == nameof(GameProfile.Name) || name == nameof(GameProfile.AutoWatch)))
             OnPropertyChanged(nameof(WatchStateLabel));
-        ScheduleSave(watcherRelevant, p);
+        ScheduleSave();
     }
 
     /// <summary>Flush any debounced edit immediately — call before the window hides
     /// or the app exits so a quick edit-then-quit never loses changes.</summary>
     public void SaveNow()
     {
-        if (_saveTimer.IsEnabled || _watcherDirty) FlushSave();
+        if (_saveTimer.IsEnabled || _watcherDirty || _snapshotsDirty) FlushSave();
     }
 
-    /// <summary>Restart the quiet-window timer; remember if a watcher rebuild is owed.</summary>
-    private void ScheduleSave(bool watcherRelevant, GameProfile? profile)
+    /// <summary>Restart the quiet-window (debounce) timer.</summary>
+    private void ScheduleSave()
     {
-        if (watcherRelevant) { _watcherDirty = true; _pendingProfile = profile; }
         _saveTimer.Stop();
         _saveTimer.Start();
     }
@@ -393,18 +401,21 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         _saveTimer.Stop();
         Persist();
-        if (_watcherDirty)
+
+        bool refreshWatcher = _watcherDirty;
+        bool refreshSnapshots = _snapshotsDirty;
+        _watcherDirty = false;
+        _snapshotsDirty = false;
+        if (SelectedProfile == null) return;
+
+        if (refreshWatcher)
         {
-            var p = _pendingProfile;
-            _watcherDirty = false;
-            _pendingProfile = null;
-            if (p != null)
-            {
-                _watcher.Refresh(p); // Refresh→Start→ValidateProfile gates invalid/half-typed paths
-                OnPropertyChanged(nameof(WatchStateLabel));
-                if (ReferenceEquals(p, SelectedProfile)) RefreshSnapshots();
-            }
+            _watcher.Refresh(SelectedProfile); // Start→ValidateProfile gates invalid/half-typed paths
+            OnPropertyChanged(nameof(WatchStateLabel));
         }
+        // Re-read the backups list so edits to BackupRoot/Name/WatchPath/ImageExtensions
+        // are reflected live (this is what makes "fix the path → backups reappear" work).
+        if (refreshSnapshots) RefreshSnapshots();
     }
 
     // ---------- fold-state persistence ----------
