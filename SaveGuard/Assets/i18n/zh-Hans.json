@@ -1,0 +1,68 @@
+{
+  "App.Tagline": "为任何游戏存档做版本备份",
+  "Rail.AddGame": "+  新增游戏",
+  "Rail.Language": "语言",
+
+  "Header.DeleteGame": "删除游戏",
+  "Watch.Off": "自动备份已关闭",
+  "Watch.Watching": "监视中 — 存档时自动备份",
+  "Watch.Idle": "自动备份开启（空闲中）",
+
+  "Section.Folders": "文件夹",
+  "Folders.WatchLabel": "要监视的存档文件夹",
+  "Folders.WatchWatermark": "例如游戏的 Savegames 文件夹",
+  "Folders.BackupLabel": "备份存放位置（必须在存档文件夹之外）",
+  "Folders.BackupWatermark": "快照写入的位置",
+  "Common.Browse": "浏览…",
+
+  "Section.HowItBacksUp": "备份方式",
+  "How.KeepCount": "保留几份备份",
+  "How.WaitMs": "最后写入后等待（毫秒）",
+  "How.TriggerTypes": "只在这些类型触发（选填）",
+  "How.TriggerWatermark": ".lsv, .sav （留空＝任何更改）",
+  "How.IncludeSubfolders": "包含子文件夹",
+  "How.AutoBackup": "游戏存档时自动备份",
+  "How.ImageTypes": "显示这些类型的预览图（选填）",
+  "How.ImageWatermark": ".png, .webp （留空＝不显示）",
+
+  "Section.Backups": "备份",
+  "Backups.OpenFolder": "打开文件夹",
+  "Backups.BackupNow": "立即备份",
+  "Backups.OpenThis": "打开此备份",
+  "Common.Delete": "删除",
+  "Backups.RestoreThis": "还原此备份",
+
+  "Empty.Title": "尚未选择游戏",
+  "Empty.Subtitle": "新增一个游戏，开始保护它的存档。",
+
+  "Tray.Open": "打开 SaveGuard",
+  "Tray.Quit": "退出 SaveGuard",
+
+  "Profile.New": "新配置",
+
+  "Status.Ready": "就绪。",
+  "Status.SetWatchFolder": "设定监视文件夹，开始保护存档。",
+  "Status.ProfileRemoved": "已移除配置，备份文件仍保留在磁盘上。",
+  "Status.BackingUp": "备份中…",
+  "Status.BackedUp": "已于 {1} 备份 {0} 个文件。",
+  "Status.BackupFailed": "备份失败：{0}",
+  "Status.Restoring": "还原中…",
+  "Status.Restored": "已从 {0} 还原备份，并先保存了一份还原前的安全副本。",
+  "Status.RestoreFailed": "还原失败：{0}",
+  "Status.BackupDeleted": "已删除备份。",
+  "Status.DeleteFailed": "无法删除：{0}",
+  "Status.AutoBackedUp": "已自动备份 {0}，时间 {1}（{2} 个文件）。",
+  "Status.AutoBackupFailed": "{0} 自动备份失败：{1}",
+
+  "Dialog.DeleteProfile.Title": "删除配置",
+  "Dialog.DeleteProfile.Body": "要将“{0}”从 SaveGuard 移除吗？\n\n你现有的备份文件不会被删除。",
+  "Dialog.Restore.Title": "还原此备份",
+  "Dialog.Restore.Body": "要用这个备份替换当前的存档文件夹吗？\n{0}\n\n系统会先把当前存档拍一份快照（标记为“pre-restore”），所以这个操作可以撤销。",
+  "Dialog.DeleteBackup.Title": "删除备份",
+  "Dialog.DeleteBackup.Body": "确定要永久删除 {0} 的这份备份吗？",
+  "Dialog.Confirm": "确定",
+  "Dialog.Cancel": "取消",
+
+  "Picker.WatchTitle": "选择游戏的存档文件夹",
+  "Picker.BackupTitle": "选择备份的存放位置"
+}

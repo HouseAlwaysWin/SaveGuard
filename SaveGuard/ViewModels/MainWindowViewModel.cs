@@ -83,9 +83,59 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         get
         {
             if (SelectedProfile == null) return "";
-            if (!SelectedProfile.AutoWatch) return "Auto-backup off";
-            return _watcher.IsWatching(SelectedProfile) ? "Watching — backs up on save" : "Auto-backup on (idle)";
+            if (!SelectedProfile.AutoWatch) return L["Watch.Off"];
+            return _watcher.IsWatching(SelectedProfile) ? L["Watch.Watching"] : L["Watch.Idle"];
         }
+    }
+
+    // ---- language ----
+    private static Localizer L => Localizer.Instance;
+    public IReadOnlyList<Localizer.LanguageOption> AvailableLanguages => L.AvailableLanguages;
+
+    [ObservableProperty] private Localizer.LanguageOption? _selectedLanguage;
+
+    partial void OnSelectedLanguageChanged(Localizer.LanguageOption? value)
+    {
+        if (value == null) return;
+        L.SetLanguage(value.Code);
+        _ui.Language = value.Code;
+        SaveUi();
+    }
+
+    // Remember the current status as a key + args so it can be re-translated live
+    // when the language changes (rather than freezing in the old language).
+    private string _statusKey = "Status.Ready";
+    private object[] _statusArgs = Array.Empty<object>();
+
+    private void SetStatus(string key, params object[] args)
+    {
+        _statusKey = key;
+        _statusArgs = args;
+        Status = L.Format(key, args);
+    }
+
+    private void OnCultureChanged()
+    {
+        OnPropertyChanged(nameof(WatchStateLabel));
+        Status = L.Format(_statusKey, _statusArgs);
+    }
+
+    private static string DetectSystemLanguage()
+    {
+        var c = System.Globalization.CultureInfo.CurrentUICulture;
+        var name = c.Name; // e.g. zh-TW, zh-CN, ja-JP
+        if (name.StartsWith("ja", StringComparison.OrdinalIgnoreCase)) return "ja";
+        if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+        {
+            // Traditional for TW/HK/MO/Hant, Simplified otherwise.
+            if (name.Contains("Hant", StringComparison.OrdinalIgnoreCase) ||
+                name.EndsWith("TW", StringComparison.OrdinalIgnoreCase) ||
+                name.EndsWith("HK", StringComparison.OrdinalIgnoreCase) ||
+                name.EndsWith("MO", StringComparison.OrdinalIgnoreCase))
+                return "zh-Hant";
+            return "zh-Hans";
+        }
+        return "en";
     }
 
     public MainWindowViewModel(ProfileStore store, BackupEngine engine, WatchService watcher, UiStateStore uiStore)
@@ -103,6 +153,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _foldersExpanded = _ui.FoldersExpanded;
         _optionsExpanded = _ui.OptionsExpanded;
         _backupsExpanded = _ui.BackupsExpanded;
+
+        // Apply the saved (or OS-default) language before the window binds its text.
+        L.SetLanguage(string.IsNullOrEmpty(_ui.Language) ? DetectSystemLanguage() : _ui.Language);
+        _selectedLanguage = L.AvailableLanguages.FirstOrDefault(l => l.Code == L.CurrentLanguage);
+        L.CultureChanged += OnCultureChanged;
+        _status = L["Status.Ready"];
 
         foreach (var p in _store.Load())
             Profiles.Add(p);
@@ -132,10 +188,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             if (err != null)
             {
-                Status = $"Auto-backup failed for {p.Name}: {err.Message}";
+                SetStatus("Status.AutoBackupFailed", p.Name, err.Message);
                 return;
             }
-            Status = $"Auto-backed up {p.Name} at {snap!.TakenAt:HH:mm:ss} ({snap.FileCount} files).";
+            SetStatus("Status.AutoBackedUp", p.Name, snap!.TakenAt.ToString("HH:mm:ss"), snap.FileCount);
             if (ReferenceEquals(p, SelectedProfile)) RefreshSnapshots();
         });
     }
@@ -210,35 +266,35 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         var p = new GameProfile
         {
-            Name = "New profile",
+            Name = L["Profile.New"],
             BackupRoot = _store.DefaultBackupRoot,
             AutoWatch = false, // off until the user points it somewhere valid
         };
         Profiles.Add(p);
         SelectedProfile = p;
-        Status = "Set the watch folder to start protecting its saves.";
+        SetStatus("Status.SetWatchFolder");
     }
 
     [RelayCommand]
     private async Task DeleteProfile()
     {
         if (SelectedProfile == null) return;
-        var ok = Confirm == null || await Confirm("Delete profile",
-            $"Remove \"{SelectedProfile.Name}\" from SaveGuard?\n\nYour existing backup files are NOT deleted.");
+        var ok = Confirm == null || await Confirm(L["Dialog.DeleteProfile.Title"],
+            L.Format("Dialog.DeleteProfile.Body", SelectedProfile.Name));
         if (!ok) return;
 
         _watcher.Stop(SelectedProfile);
         Profiles.Remove(SelectedProfile);
         SelectedProfile = Profiles.FirstOrDefault();
         Persist();
-        Status = "Profile removed. Backup files were left on disk.";
+        SetStatus("Status.ProfileRemoved");
     }
 
     [RelayCommand]
     private async Task BrowseWatch()
     {
         if (SelectedProfile == null || PickFolder == null) return;
-        var path = await PickFolder("Choose the game's save folder");
+        var path = await PickFolder(L["Picker.WatchTitle"]);
         if (path != null) SelectedProfile.WatchPath = path;
     }
 
@@ -246,7 +302,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private async Task BrowseBackup()
     {
         if (SelectedProfile == null || PickFolder == null) return;
-        var path = await PickFolder("Choose where to store backups");
+        var path = await PickFolder(L["Picker.BackupTitle"]);
         if (path != null) SelectedProfile.BackupRoot = path;
     }
 
@@ -260,16 +316,16 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (err != null) { Status = err; return; }
 
         Busy = true;
-        Status = "Backing up…";
+        SetStatus("Status.BackingUp");
         try
         {
             var snap = await _engine.CreateSnapshotAsync(SelectedProfile, "manual");
             RefreshSnapshots();
-            Status = $"Backed up {snap.FileCount} files at {snap.TakenAt:HH:mm:ss}.";
+            SetStatus("Status.BackedUp", snap.FileCount, snap.TakenAt.ToString("HH:mm:ss"));
         }
         catch (Exception ex)
         {
-            Status = $"Backup failed: {ex.Message}";
+            SetStatus("Status.BackupFailed", ex.Message);
         }
         finally { Busy = false; }
     }
@@ -279,14 +335,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (SelectedProfile == null || SelectedSnapshot == null) return;
 
-        var ok = Confirm == null || await Confirm("Restore this backup",
-            $"Replace the current save folder with the backup from\n{SelectedSnapshot.TakenAtDisplay}?\n\n" +
-            "Your current saves will be snapshotted first (labelled \"pre-restore\"), " +
-            "so this can be undone.");
+        var ok = Confirm == null || await Confirm(L["Dialog.Restore.Title"],
+            L.Format("Dialog.Restore.Body", SelectedSnapshot.TakenAtDisplay));
         if (!ok) return;
 
         Busy = true;
-        Status = "Restoring…";
+        SetStatus("Status.Restoring");
         try
         {
             // Pause auto-watch so the restore's writes don't fire a spurious backup.
@@ -297,11 +351,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
             if (wasWatching) _watcher.Start(SelectedProfile);
             RefreshSnapshots();
-            Status = $"Restored backup from {SelectedSnapshot.TakenAtDisplay}. A pre-restore safety copy was saved.";
+            SetStatus("Status.Restored", SelectedSnapshot.TakenAtDisplay);
         }
         catch (Exception ex)
         {
-            Status = $"Restore failed: {ex.Message}";
+            SetStatus("Status.RestoreFailed", ex.Message);
         }
         finally { Busy = false; }
     }
@@ -310,19 +364,19 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private async Task DeleteSnapshot()
     {
         if (SelectedSnapshot == null) return;
-        var ok = Confirm == null || await Confirm("Delete backup",
-            $"Permanently delete the backup from {SelectedSnapshot.TakenAtDisplay}?");
+        var ok = Confirm == null || await Confirm(L["Dialog.DeleteBackup.Title"],
+            L.Format("Dialog.DeleteBackup.Body", SelectedSnapshot.TakenAtDisplay));
         if (!ok) return;
 
         try
         {
             _engine.DeleteSnapshot(SelectedSnapshot);
             RefreshSnapshots();
-            Status = "Backup deleted.";
+            SetStatus("Status.BackupDeleted");
         }
         catch (Exception ex)
         {
-            Status = $"Couldn't delete: {ex.Message}";
+            SetStatus("Status.DeleteFailed", ex.Message);
         }
     }
 

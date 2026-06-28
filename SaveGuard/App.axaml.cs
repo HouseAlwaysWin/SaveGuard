@@ -66,13 +66,20 @@ public partial class App : Application
     {
         var menu = new NativeMenu();
 
-        var openItem = new NativeMenuItem("Open SaveGuard");
+        var openItem = new NativeMenuItem(Localizer.Instance["Tray.Open"]);
         openItem.Click += (_, _) => ShowMainWindow(window);
         menu.Items.Add(openItem);
 
-        var quitItem = new NativeMenuItem("Quit SaveGuard");
+        var quitItem = new NativeMenuItem(Localizer.Instance["Tray.Quit"]);
         quitItem.Click += (_, _) => Quit(desktop, watcher);
         menu.Items.Add(quitItem);
+
+        // Keep the tray menu in sync when the language changes.
+        Localizer.Instance.CultureChanged += () =>
+        {
+            openItem.Header = Localizer.Instance["Tray.Open"];
+            quitItem.Header = Localizer.Instance["Tray.Quit"];
+        };
 
         var tray = new TrayIcon
         {

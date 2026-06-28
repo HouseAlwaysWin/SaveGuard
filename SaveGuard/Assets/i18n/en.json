@@ -1,0 +1,68 @@
+{
+  "App.Tagline": "Versioned backups for any game's saves",
+  "Rail.AddGame": "+  Add a game",
+  "Rail.Language": "Language",
+
+  "Header.DeleteGame": "Delete game",
+  "Watch.Off": "Auto-backup off",
+  "Watch.Watching": "Watching — backs up on save",
+  "Watch.Idle": "Auto-backup on (idle)",
+
+  "Section.Folders": "FOLDERS",
+  "Folders.WatchLabel": "Save folder to watch",
+  "Folders.WatchWatermark": "e.g. the game's Savegames folder",
+  "Folders.BackupLabel": "Store backups in  (must be outside the save folder)",
+  "Folders.BackupWatermark": "where snapshots are written",
+  "Common.Browse": "Browse…",
+
+  "Section.HowItBacksUp": "HOW IT BACKS UP",
+  "How.KeepCount": "Keep this many backups",
+  "How.WaitMs": "Wait after last write (ms)",
+  "How.TriggerTypes": "Only trigger on these types (optional)",
+  "How.TriggerWatermark": ".lsv, .sav   (blank = any change)",
+  "How.IncludeSubfolders": "Include subfolders",
+  "How.AutoBackup": "Auto-backup whenever the game saves",
+  "How.ImageTypes": "Show preview image of these types (optional)",
+  "How.ImageWatermark": ".png, .webp   (blank = no preview)",
+
+  "Section.Backups": "BACKUPS",
+  "Backups.OpenFolder": "Open folder",
+  "Backups.BackupNow": "Back up now",
+  "Backups.OpenThis": "Open this backup",
+  "Common.Delete": "Delete",
+  "Backups.RestoreThis": "Restore this backup",
+
+  "Empty.Title": "No game selected",
+  "Empty.Subtitle": "Add a game to start protecting its saves.",
+
+  "Tray.Open": "Open SaveGuard",
+  "Tray.Quit": "Quit SaveGuard",
+
+  "Profile.New": "New profile",
+
+  "Status.Ready": "Ready.",
+  "Status.SetWatchFolder": "Set the watch folder to start protecting its saves.",
+  "Status.ProfileRemoved": "Profile removed. Backup files were left on disk.",
+  "Status.BackingUp": "Backing up…",
+  "Status.BackedUp": "Backed up {0} files at {1}.",
+  "Status.BackupFailed": "Backup failed: {0}",
+  "Status.Restoring": "Restoring…",
+  "Status.Restored": "Restored backup from {0}. A pre-restore safety copy was saved.",
+  "Status.RestoreFailed": "Restore failed: {0}",
+  "Status.BackupDeleted": "Backup deleted.",
+  "Status.DeleteFailed": "Couldn't delete: {0}",
+  "Status.AutoBackedUp": "Auto-backed up {0} at {1} ({2} files).",
+  "Status.AutoBackupFailed": "Auto-backup failed for {0}: {1}",
+
+  "Dialog.DeleteProfile.Title": "Delete profile",
+  "Dialog.DeleteProfile.Body": "Remove \"{0}\" from SaveGuard?\n\nYour existing backup files are NOT deleted.",
+  "Dialog.Restore.Title": "Restore this backup",
+  "Dialog.Restore.Body": "Replace the current save folder with the backup from\n{0}?\n\nYour current saves will be snapshotted first (labelled \"pre-restore\"), so this can be undone.",
+  "Dialog.DeleteBackup.Title": "Delete backup",
+  "Dialog.DeleteBackup.Body": "Permanently delete the backup from {0}?",
+  "Dialog.Confirm": "Confirm",
+  "Dialog.Cancel": "Cancel",
+
+  "Picker.WatchTitle": "Choose the game's save folder",
+  "Picker.BackupTitle": "Choose where to store backups"
+}

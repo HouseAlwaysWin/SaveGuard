@@ -12,4 +12,8 @@ public sealed partial class UiState : ObservableObject
     [ObservableProperty] private bool _foldersExpanded = true;
     [ObservableProperty] private bool _optionsExpanded = true;
     [ObservableProperty] private bool _backupsExpanded = true;
+
+    /// <summary>UI language code (e.g. "en", "zh-Hant"). Empty = follow the OS on first run.</summary>
+    [ObservableProperty] private string _language = "";
 }
+

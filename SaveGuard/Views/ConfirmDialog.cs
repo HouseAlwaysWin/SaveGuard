@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using SaveGuard.Services;
 
 namespace SaveGuard.Views;
 
@@ -41,7 +42,7 @@ public sealed class ConfirmDialog : Window
 
         var cancel = new Button
         {
-            Content = "Cancel",
+            Content = Localizer.Instance["Dialog.Cancel"],
             Padding = new Thickness(14, 9),
             CornerRadius = new CornerRadius(8),
             Background = new SolidColorBrush(Color.Parse("#252934")),
@@ -51,7 +52,7 @@ public sealed class ConfirmDialog : Window
 
         var ok = new Button
         {
-            Content = "Confirm",
+            Content = Localizer.Instance["Dialog.Confirm"],
             Padding = new Thickness(16, 9),
             CornerRadius = new CornerRadius(8),
             Background = new SolidColorBrush(Color.Parse("#E0A24E")),
