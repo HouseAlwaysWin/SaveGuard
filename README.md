@@ -1,73 +1,61 @@
-# SaveGuard
+<p align="center">
+  <img src="SaveGuard/Assets/saveguard.png" width="96" alt="SaveGuard" />
+</p>
 
-通用遊戲存檔備份器。監看任意遊戲的存檔資料夾，每當遊戲存檔時自動把整個資料夾打成一個帶時間戳的快照，出事時一鍵還原。為「博得之門 3 榮譽模式」這種不能團滅、存檔會被原地覆寫的情境而設計，但對任何遊戲都通用。
+<h1 align="center">SaveGuard</h1>
 
-## 為什麼這樣設計
+<p align="center">
+  <b>English</b> ·
+  <a href="README.zh-Hant.md">繁體中文</a> ·
+  <a href="README.zh-Hans.md">简体中文</a> ·
+  <a href="README.ja.md">日本語</a>
+</p>
 
-**一個備份單位 = 存檔資料夾的完整快照。** 不做個別檔案的差異比對，每次都整包複製到 `BackupRoot/<遊戲名>/<時間戳>/`。理由是還原的正確性——遊戲存檔常常是多檔關聯的（BG3 的 `meta.lsf` 必須跟 `.lsv` 配對），只還原其中一個就會壞掉。整包快照天生避開這問題。
+Versioned backups for any game's saves. SaveGuard watches a game's save folder and, every time the game saves, snapshots the **whole folder** into a timestamped copy — so you can roll back to any earlier save in one click. Built for situations like Baldur's Gate 3 Honour Mode (no second chances, saves overwritten in place), but it works for any game.
 
-**還原前先自動快照當前狀態**（標記 `pre-restore`），所以連「還原本身還錯」都有保險。榮譽模式沒有第二次機會，這層特別重要。
+## Features
 
-**引擎與 UI 完全解耦。** `Services/BackupEngine.cs` 是純 .NET file IO、無任何 UI 依賴、跨平台、可單元測試。之後要做成 CLI 或系統托盤版，直接複用引擎那層。
+- **Automatic snapshots** on every save (debounced), with configurable retention.
+- **One-click restore** — and a `pre-restore` safety snapshot is taken first, so even a wrong restore is undoable.
+- **Whole-folder snapshots** — saves are often multi-file (BG3's `meta.lsf` must match its `.lsv`); copying the whole folder keeps them consistent.
+- **Save preview** — shows the in-game screenshot next to each backup (configurable image types).
+- **Runs in the tray** — closing the window hides it to the system tray, so watching keeps running in the background.
+- **Auto-update** — installed builds update themselves from GitHub Releases.
+- **4 languages** — English, 繁體中文, 简体中文, 日本語 — switchable live.
 
-## 架構
+## Install
 
-```
-Models/
-  GameProfile.cs     一個被監看的遊戲（路徑、過濾、輪替設定）
-  Snapshot.cs        一份快照（時間戳、大小、檔數、標籤）
-Services/
-  BackupEngine.cs    快照 / 輪替 / 還原；路徑安全驗證
-  WatchService.cs    FileSystemWatcher + debounce（每遊戲一個）
-  ProfileStore.cs    Profile 持久化 (JSON)；首次啟動自動建 BG3 profile
-ViewModels/
-  MainWindowViewModel.cs   master/detail、所有指令
-Views/
-  MainWindow.axaml(.cs)    UI
-  ConfirmDialog.cs         自製確認對話框（Avalonia 無內建 message box）
-  Converters.cs            標籤顏色 / 監看狀態顏色
-```
+Download the latest `Setup.exe` from [Releases](https://github.com/HouseAlwaysWin/SaveGuard/releases) and run it. After that the app updates itself automatically.
 
-## 工程上處理掉的坑
+> On first launch, if a Baldur's Gate 3 save folder is detected, a BG3 profile is created for you (filters `.lsv`, keeps 25, auto-watch). Point **Save folder** at the right place, hit **Back up now**, and confirm the backups list fills in.
 
-- **寫入未完成就觸發**：`WatchService` 用 debounce（預設等 2 秒寫入靜下來）才打包，避免複製到半截檔案。
-- **一次存檔轟炸多個事件**：debounce timer 收斂，最後一發才動手。
-- **遊戲還鎖著存檔**：用 `FileShare.ReadWrite` 共享讀取複製；真的鎖死的檔案跳過而不是整包失敗。
-- **備份備份進去的無限遞迴**：`ValidateProfile` 擋掉 `BackupRoot` 落在 `WatchPath` 內（或反過來）的設定。
-- **還原時的二次存檔**：還原期間暫停 watcher，避免還原寫入又觸發一次自動備份。
-- **輪替優先砍 pre-restore**：超過上限時，安全副本比你真正的備份先被淘汰。
+Add other games with **+ Add a game** and point it at that game's save folder. Common locations:
 
-## 建置與執行
+- `Documents\My Games\<game>`
+- `%LOCALAPPDATA%\<game>` or `%APPDATA%\<game>`
+- Steam cloud sync: `Steam\userdata\<id>\<appid>\remote`
 
-需要 .NET 10 SDK。
+Leave **Only trigger on these types** blank to react to any change (when unsure, leave it blank).
+
+## How it works
+
+- Each backup is a **complete copy** of the save folder into `BackupRoot/<game>/<timestamp>/` — never a per-file diff — because saves only restore correctly as a set.
+- The **backup engine is UI-free** (`Services/BackupEngine.cs`): pure .NET file IO, cross-platform, unit-testable.
+- Settings persist to `%APPDATA%\SaveGuard\profiles.json`; backups default to `%APPDATA%\SaveGuard\Backups`.
+- Edge cases handled: write-in-progress and event storms (debounce), files the game still holds (shared-read copy, skip the truly locked ones), recursive backup-of-backups (`ValidateProfile` blocks it), spurious backup during a restore (the watcher is paused), and rotation that evicts `pre-restore` safety copies before your real backups.
+
+## Build from source
+
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
-cd SaveGuard/SaveGuard
-dotnet restore
-dotnet run
+dotnet run --project SaveGuard
 ```
 
-首次啟動時，如果偵測到 BG3 存檔路徑
-（`%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\PlayerProfiles\Public\Savegames\Story`），
-會自動幫你建好一個 BG3 profile，過濾 `.lsv`、保留 25 份、自動監看。確認一下 `Save folder` 指對地方
-（榮譽模式存檔在那個 `Story` 目錄底下），按 **Back up now** 測一次，看備份清單有沒有跑出來。
+## Releasing
 
-Profile 設定存在 `%APPDATA%\SaveGuard\profiles.json`，預設備份輸出在 `%APPDATA%\SaveGuard\Backups`。
+Push a `v*` tag and GitHub Actions builds, packages (Velopack), and publishes a GitHub Release that installed apps auto-update to. See [RELEASING.md](RELEASING.md).
 
-## 給其他遊戲用
+## License
 
-按左下「+ Add a game」，指定那個遊戲的存檔資料夾就好。常見路徑：
-
-- `Documents\My Games\<遊戲>`
-- `%LOCALAPPDATA%\<遊戲>`
-- `%APPDATA%\<遊戲>`
-- Steam 雲端同步：`Steam\userdata\<id>\<appid>\remote`
-
-`Only trigger on these types` 留空就是任何變動都觸發；不確定就留空。
-
-## 之後可以加的
-
-- 系統托盤常駐（核心引擎不用動，加個 `H.NotifyIcon` 的 UI 殼）
-- 快照備註 / 釘選（避免被輪替砍掉）
-- 還原前的差異預覽
-- zip 壓縮選項（引擎留了介面空間）
+[MIT](LICENSE) © 2026 Martin Wang
