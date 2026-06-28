@@ -18,9 +18,11 @@ public sealed class ProfileStore
 
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 
-    public ProfileStore()
+    /// <param name="baseDir">App-data base directory. Defaults to %APPDATA%. Pass a
+    /// throwaway directory in tests/tools so they never touch the user's real data.</param>
+    public ProfileStore(string? baseDir = null)
     {
-        var baseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        baseDir ??= Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         _dir = Path.Combine(baseDir, "SaveGuard");
         _file = Path.Combine(_dir, "profiles.json");
     }
