@@ -279,8 +279,17 @@
             <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}"
                     BorderBrush="{StaticResource HairlineBrush}" BorderThickness="0,1,0,0"
                     Padding="20,9">
-                <TextBlock Text="{Binding Status}" Foreground="{StaticResource TextMutedBrush}"
-                           FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Status}" Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                                VerticalAlignment="Center" IsVisible="{Binding UpdateReady}">
+                        <TextBlock Text="{Binding UpdateBannerText}" VerticalAlignment="Center"
+                                   FontSize="12" Foreground="{StaticResource GuardGoldBrush}" />
+                        <Button Classes="primary" Padding="12,5" Content="{loc:Loc Update.Restart}"
+                                Command="{Binding RestartToUpdateCommand}" />
+                    </StackPanel>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

@@ -64,5 +64,8 @@
   "Dialog.Cancel": "取消",
 
   "Picker.WatchTitle": "選擇遊戲的存檔資料夾",
-  "Picker.BackupTitle": "選擇備份的存放位置"
+  "Picker.BackupTitle": "選擇備份的存放位置",
+
+  "Update.Ready": "更新 {0} 已就緒",
+  "Update.Restart": "重新啟動以更新"
 }

@@ -29,7 +29,8 @@ public partial class App : Application
             var uiStore = new UiStateStore();
             var engine = new BackupEngine();
             var watcher = new WatchService(engine);
-            var vm = new MainWindowViewModel(store, engine, watcher, uiStore);
+            var updates = new UpdateService();
+            var vm = new MainWindowViewModel(store, engine, watcher, uiStore, updates);
 
             var window = new MainWindow { DataContext = vm };
             window.WireDialogs(vm);

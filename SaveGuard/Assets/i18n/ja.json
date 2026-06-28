@@ -64,5 +64,8 @@
   "Dialog.Cancel": "キャンセル",
 
   "Picker.WatchTitle": "ゲームのセーブフォルダーを選択",
-  "Picker.BackupTitle": "バックアップの保存先を選択"
+  "Picker.BackupTitle": "バックアップの保存先を選択",
+
+  "Update.Ready": "アップデート {0} の準備完了",
+  "Update.Restart": "再起動して更新"
 }

@@ -23,6 +23,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly WatchService _watcher;
     private readonly UiStateStore _uiStore;
     private readonly UiState _ui;
+    private readonly UpdateService _updates;
+
+    private Velopack.UpdateInfo? _pendingUpdate;
 
     // ---- auto-save (debounced) ----
     private readonly DispatcherTimer _saveTimer;
@@ -74,6 +77,14 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _optionsExpanded;
     [ObservableProperty] private bool _backupsExpanded;
 
+    // Auto-update: shown in the status bar once a new version is downloaded.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(UpdateBannerText))]
+    private bool _updateReady;
+
+    private string _updateVersion = "";
+    public string UpdateBannerText => L.Format("Update.Ready", _updateVersion);
+
     public bool HasProfile => SelectedProfile != null;
 
     public bool HasPreviewImage => PreviewImage != null;
@@ -117,6 +128,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private void OnCultureChanged()
     {
         OnPropertyChanged(nameof(WatchStateLabel));
+        OnPropertyChanged(nameof(UpdateBannerText));
         Status = L.Format(_statusKey, _statusArgs);
     }
 
@@ -138,12 +150,14 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         return "en";
     }
 
-    public MainWindowViewModel(ProfileStore store, BackupEngine engine, WatchService watcher, UiStateStore uiStore)
+    public MainWindowViewModel(ProfileStore store, BackupEngine engine, WatchService watcher,
+                               UiStateStore uiStore, UpdateService updates)
     {
         _store = store;
         _engine = engine;
         _watcher = watcher;
         _uiStore = uiStore;
+        _updates = updates;
 
         _watcher.BackupCompleted += OnAutoBackupCompleted;
 
@@ -175,6 +189,29 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _saveTimer.Tick += (_, _) => FlushSave();
         Profiles.CollectionChanged += OnProfilesChanged;
         foreach (var p in Profiles) Hook(p);
+
+        // Check GitHub Releases for a newer version in the background (no-op in dev).
+        _ = CheckForUpdatesAsync();
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            var info = await _updates.CheckAsync();
+            if (info == null) return;
+            await _updates.DownloadAsync(info);
+            _pendingUpdate = info;
+            _updateVersion = info.TargetFullRelease.Version.ToString();
+            UpdateReady = true;
+        }
+        catch { /* offline / not installed — ignore */ }
+    }
+
+    [RelayCommand]
+    private void RestartToUpdate()
+    {
+        if (_pendingUpdate != null) _updates.ApplyAndRestart(_pendingUpdate);
     }
 
     partial void OnSelectedProfileChanged(GameProfile? value) => RefreshSnapshots();

@@ -64,5 +64,8 @@
   "Dialog.Cancel": "Cancel",
 
   "Picker.WatchTitle": "Choose the game's save folder",
-  "Picker.BackupTitle": "Choose where to store backups"
+  "Picker.BackupTitle": "Choose where to store backups",
+
+  "Update.Ready": "Update {0} ready",
+  "Update.Restart": "Restart to update"
 }
