@@ -101,31 +101,42 @@
                         </StackPanel>
                     </Grid>
 
-                    <Border Grid.Row="1" Background="{StaticResource InkBaseBrush}"
-                            BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
-                            CornerRadius="8" MinHeight="84" MaxHeight="150" Padding="2">
-                        <ListBox ItemsSource="{Binding Snapshots}"
-                                 SelectedItem="{Binding SelectedSnapshot}"
-                                 Background="Transparent" BorderThickness="0"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="m:Snapshot">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">
-                                        <Border Grid.Column="0" Width="7" CornerRadius="3"
-                                                Margin="0,1,12,1"
-                                                Background="{Binding Label, Converter={StaticResource LabelBrush}}" />
-                                        <StackPanel Grid.Column="1" Spacing="1">
-                                            <TextBlock Text="{Binding TakenAtDisplay}"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                                       FontSize="13" FontWeight="SemiBold" />
-                                            <TextBlock Text="{Binding SubLine}"
-                                                       Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </Border>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" MinHeight="84" MaxHeight="150">
+                        <Border Grid.Column="0" Background="{StaticResource InkBaseBrush}"
+                                BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
+                                CornerRadius="8" Padding="2">
+                            <ListBox ItemsSource="{Binding Snapshots}"
+                                     SelectedItem="{Binding SelectedSnapshot}"
+                                     Background="Transparent" BorderThickness="0"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="m:Snapshot">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">
+                                            <Border Grid.Column="0" Width="7" CornerRadius="3"
+                                                    Margin="0,1,12,1"
+                                                    Background="{Binding Label, Converter={StaticResource LabelBrush}}" />
+                                            <StackPanel Grid.Column="1" Spacing="1">
+                                                <TextBlock Text="{Binding TakenAtDisplay}"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                                           FontSize="13" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding SubLine}"
+                                                           Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+
+                        <!-- save preview: shown only when a matching image exists -->
+                        <Border Grid.Column="1" Width="200" Margin="10,0,0,0"
+                                IsVisible="{Binding HasPreviewImage}"
+                                Background="{StaticResource InkBaseBrush}"
+                                BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
+                                CornerRadius="8" Padding="4">
+                            <Image Source="{Binding PreviewImage}" Stretch="Uniform" />
+                        </Border>
+                    </Grid>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10"
                                 HorizontalAlignment="Right" Margin="0,12,0,0">
@@ -203,7 +214,7 @@
                         <StackPanel Spacing="14">
                             <TextBlock Classes="eyebrow" Text="HOW IT BACKS UP" />
 
-                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
                                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
                                     <TextBlock Classes="field" Text="Keep this many backups" />
                                     <NumericUpDown Value="{Binding SelectedProfile.MaxSnapshots}"
@@ -231,6 +242,12 @@
                                     <CheckBox IsChecked="{Binding SelectedProfile.AutoWatch}"
                                               Content="Auto-backup whenever the game saves"
                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4" Margin="0,14,0,0">
+                                    <TextBlock Classes="field" Text="Show preview image of these types (optional)" />
+                                    <TextBox Text="{Binding SelectedProfile.ImageExtensions}"
+                                             Watermark=".png, .webp   (blank = no preview)" />
                                 </StackPanel>
                             </Grid>
 

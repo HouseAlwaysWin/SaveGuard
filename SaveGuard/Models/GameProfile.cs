@@ -35,6 +35,14 @@ public sealed partial class GameProfile : ObservableObject
     /// </summary>
     [ObservableProperty] private string _triggerExtensions = "";
 
+    /// <summary>
+    /// Optional comma-separated extension filter for the save-preview image
+    /// (e.g. ".png,.webp"). If a snapshot (or the live save folder) contains a
+    /// file of one of these types, the newest one is shown as a thumbnail.
+    /// Blank = no preview.
+    /// </summary>
+    [ObservableProperty] private string _imageExtensions = ".png,.jpg,.jpeg,.webp,.bmp";
+
     /// <summary>Keep at most this many snapshots; oldest are pruned.</summary>
     [ObservableProperty] private int _maxSnapshots = 20;
 
@@ -47,12 +55,17 @@ public sealed partial class GameProfile : ObservableObject
     [JsonIgnore]
     public IReadOnlyList<string> TriggerExtensionListValue => TriggerExtensionList();
 
-    public IReadOnlyList<string> TriggerExtensionList()
+    public IReadOnlyList<string> TriggerExtensionList() => ParseExtensions(TriggerExtensions);
+
+    public IReadOnlyList<string> ImageExtensionList() => ParseExtensions(ImageExtensions);
+
+    /// <summary>Splits a comma-separated extension list into normalized ".ext" forms.</summary>
+    private static IReadOnlyList<string> ParseExtensions(string? raw)
     {
-        if (string.IsNullOrWhiteSpace(TriggerExtensions))
+        if (string.IsNullOrWhiteSpace(raw))
             return Array.Empty<string>();
 
-        var parts = TriggerExtensions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var list = new List<string>(parts.Length);
         foreach (var p in parts)
             list.Add(p.StartsWith('.') ? p.ToLowerInvariant() : "." + p.ToLowerInvariant());

@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveGuard.Models;
@@ -35,7 +37,15 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _status = "Ready.";
     [ObservableProperty] private bool _busy;
 
+    /// <summary>Thumbnail of the selected backup (or the live save folder when no
+    /// backup is selected), if one matching the profile's image types is found.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreviewImage))]
+    private Bitmap? _previewImage;
+
     public bool HasProfile => SelectedProfile != null;
+
+    public bool HasPreviewImage => PreviewImage != null;
 
     public string WatchStateLabel
     {
@@ -67,6 +77,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSelectedProfileChanged(GameProfile? value) => RefreshSnapshots();
 
+    partial void OnSelectedSnapshotChanged(Snapshot? value) => RefreshPreview();
+
     private void OnAutoBackupCompleted(GameProfile p, Snapshot? snap, Exception? err)
     {
         // Marshal to the UI thread.
@@ -85,11 +97,64 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private void RefreshSnapshots()
     {
         Snapshots.Clear();
-        if (SelectedProfile == null) return;
-        if (BackupEngine.ValidateProfile(SelectedProfile) != null) return;
+        if (SelectedProfile == null) { RefreshPreview(); return; }
+        if (BackupEngine.ValidateProfile(SelectedProfile) != null) { RefreshPreview(); return; }
         foreach (var s in _engine.ListSnapshots(SelectedProfile))
             Snapshots.Add(s);
         OnPropertyChanged(nameof(WatchStateLabel));
+        RefreshPreview();
+    }
+
+    /// <summary>
+    /// Loads the preview thumbnail: the newest image inside the selected snapshot,
+    /// or — when no snapshot is selected — inside the live save folder. Silently
+    /// shows nothing when the profile has no image types or no image is found.
+    /// </summary>
+    private void RefreshPreview()
+    {
+        string? folder = SelectedSnapshot?.FolderPath;
+        if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+            folder = SelectedProfile?.WatchPath;
+
+        var exts = SelectedProfile?.ImageExtensionList() ?? Array.Empty<string>();
+        SetPreview(FindNewestImage(folder, exts));
+    }
+
+    private void SetPreview(string? path)
+    {
+        var previous = PreviewImage;
+        Bitmap? next = null;
+        if (path != null)
+        {
+            try
+            {
+                // Decode fully into memory so we don't keep a handle on the file.
+                using var fs = File.OpenRead(path);
+                next = new Bitmap(fs);
+            }
+            catch { next = null; }
+        }
+        PreviewImage = next;
+        previous?.Dispose();
+    }
+
+    private static string? FindNewestImage(string? folder, IReadOnlyList<string> exts)
+    {
+        if (string.IsNullOrWhiteSpace(folder) || exts.Count == 0 || !Directory.Exists(folder))
+            return null;
+        try
+        {
+            string? best = null;
+            DateTime bestTime = DateTime.MinValue;
+            foreach (var f in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
+            {
+                if (!exts.Contains(Path.GetExtension(f).ToLowerInvariant())) continue;
+                var t = File.GetLastWriteTimeUtc(f);
+                if (t > bestTime) { bestTime = t; best = f; }
+            }
+            return best;
+        }
+        catch { return null; }
     }
 
     // ---------- profile commands ----------
