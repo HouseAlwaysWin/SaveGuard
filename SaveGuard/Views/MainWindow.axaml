@@ -31,7 +31,7 @@
                 BorderBrush="{StaticResource HairlineBrush}" BorderThickness="0,0,1,0">
             <Grid RowDefinitions="Auto,*,Auto" Margin="18,20,18,18">
 
-                <StackPanel Grid.Row="0" Spacing="3" Margin="0,0,0,18">
+                <StackPanel Grid.Row="0" Spacing="3" Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal" Spacing="9">
                         <Border Width="9" Height="9" CornerRadius="5" VerticalAlignment="Center"
                                 Background="{StaticResource GuardGoldBrush}" />
@@ -41,6 +41,10 @@
                     <TextBlock Text="{loc:Loc App.Tagline}"
                                FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"
                                TextWrapping="Wrap" Margin="18,0,0,0" />
+                    <Button Classes="ghost" Margin="0,14,0,0"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Command="{Binding AddProfileCommand}"
+                            Content="{loc:Loc Rail.AddGame}" />
                 </StackPanel>
 
                 <Border Grid.Row="1" Background="{StaticResource InkBaseBrush}"
@@ -64,23 +68,17 @@
                     </ListBox>
                 </Border>
 
-                <StackPanel Grid.Row="2" Spacing="10" Margin="0,14,0,0">
-                    <StackPanel Spacing="4">
-                        <TextBlock Classes="field" Text="{loc:Loc Rail.Language}" Margin="2,0,0,0" />
-                        <ComboBox HorizontalAlignment="Stretch"
-                                  ItemsSource="{Binding AvailableLanguages}"
-                                  SelectedItem="{Binding SelectedLanguage}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-                    <Button Classes="ghost"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                            Command="{Binding AddProfileCommand}"
-                            Content="{loc:Loc Rail.AddGame}" />
+                <StackPanel Grid.Row="2" Spacing="4" Margin="0,14,0,0">
+                    <TextBlock Classes="field" Text="{loc:Loc Rail.Language}" Margin="2,0,0,0" />
+                    <ComboBox HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding AvailableLanguages}"
+                              SelectedItem="{Binding SelectedLanguage}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Grid>
         </Border>
