@@ -173,10 +173,11 @@
 
                             <Border Background="{StaticResource InkBaseBrush}"
                                     BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
-                                    CornerRadius="8" MinHeight="160" Padding="2">
+                                    CornerRadius="8" MinHeight="160" MaxHeight="300" Padding="2">
                                 <ListBox ItemsSource="{Binding Snapshots}"
                                          SelectedItem="{Binding SelectedSnapshot}"
-                                         Background="Transparent" BorderThickness="0">
+                                         Background="Transparent" BorderThickness="0"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="m:Snapshot">
                                             <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">
