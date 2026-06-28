@@ -89,20 +89,22 @@
 
                             <StackPanel Spacing="4">
                                 <TextBlock Classes="field" Text="Save folder to watch" />
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
                                     <TextBox Grid.Column="0" Text="{Binding SelectedProfile.WatchPath}"
                                              Watermark="e.g. the game's Savegames folder" />
                                     <Button Grid.Column="1" Classes="ghost" Content="Browse…"
+                                            Margin="8,0,0,0"
                                             Command="{Binding BrowseWatchCommand}" />
                                 </Grid>
                             </StackPanel>
 
                             <StackPanel Spacing="4">
                                 <TextBlock Classes="field" Text="Store backups in  (must be outside the save folder)" />
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
                                     <TextBox Grid.Column="0" Text="{Binding SelectedProfile.BackupRoot}"
                                              Watermark="where snapshots are written" />
                                     <Button Grid.Column="1" Classes="ghost" Content="Browse…"
+                                            Margin="8,0,0,0"
                                             Command="{Binding BrowseBackupCommand}" />
                                 </Grid>
                             </StackPanel>
@@ -114,8 +116,7 @@
                         <StackPanel Spacing="14">
                             <TextBlock Classes="eyebrow" Text="HOW IT BACKS UP" />
 
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="20" RowDefinitions="Auto,Auto"
-                                  RowSpacing="14">
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
                                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
                                     <TextBlock Classes="field" Text="Keep this many backups" />
                                     <NumericUpDown Value="{Binding SelectedProfile.MaxSnapshots}"
@@ -123,20 +124,20 @@
                                                    FormatString="0" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4" Margin="20,0,0,0">
                                     <TextBlock Classes="field" Text="Wait after last write (ms)" />
                                     <NumericUpDown Value="{Binding SelectedProfile.DebounceMs}"
                                                    Minimum="200" Maximum="15000" Increment="250"
                                                    FormatString="0" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,14,0,0">
                                     <TextBlock Classes="field" Text="Only trigger on these types (optional)" />
                                     <TextBox Text="{Binding SelectedProfile.TriggerExtensions}"
                                              Watermark=".lsv, .sav   (blank = any change)" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="10" VerticalAlignment="Bottom">
+                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="10" VerticalAlignment="Bottom" Margin="20,14,0,0">
                                     <CheckBox IsChecked="{Binding SelectedProfile.Recursive}"
                                               Content="Include subfolders"
                                               Foreground="{StaticResource TextPrimaryBrush}" />
@@ -172,10 +173,11 @@
 
                             <Border Background="{StaticResource InkBaseBrush}"
                                     BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
-                                    CornerRadius="8" MinHeight="160" Padding="2">
+                                    CornerRadius="8" MinHeight="160" MaxHeight="300" Padding="2">
                                 <ListBox ItemsSource="{Binding Snapshots}"
                                          SelectedItem="{Binding SelectedSnapshot}"
-                                         Background="Transparent" BorderThickness="0">
+                                         Background="Transparent" BorderThickness="0"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="m:Snapshot">
                                             <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">

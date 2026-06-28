@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug SaveGuard",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/SaveGuard/bin/Debug/net8.0/SaveGuard.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/SaveGuard",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Attach to SaveGuard",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}
