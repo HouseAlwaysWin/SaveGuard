@@ -77,93 +77,18 @@
 
         <!-- ============ RIGHT: editor + snapshots ============ -->
         <Grid Grid.Column="2" RowDefinitions="*,Auto" Margin="0">
-            <!-- The backups card is docked to the bottom so its action buttons are
-                 always visible; the editor fills the remaining space and scrolls
-                 inside it. A DockPanel (rather than a star-split Grid) lets the
-                 editor take exactly the leftover height instead of an arbitrary
-                 fraction, so the two regions never overlap. The editor ScrollViewer
-                 must sit in a width-bounded slot (the DockPanel fill) or it measures
-                 its content unbounded and the Browse buttons spill off-screen. -->
-            <DockPanel Grid.Row="0" IsVisible="{Binding HasProfile}" LastChildFill="True">
-
-            <!-- backups card: docked bottom; list flexes (bounded), buttons pinned -->
-            <Border DockPanel.Dock="Bottom" Classes="card" Margin="24,6,24,12">
-                <Grid RowDefinitions="Auto,Auto,Auto">
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-                        <TextBlock Grid.Column="0" Classes="eyebrow" Text="BACKUPS"
-                                   VerticalAlignment="Center" />
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                            <Button Classes="ghost" Content="Open folder"
-                                    Command="{Binding OpenBackupFolderCommand}" />
-                            <Button Classes="primary" Content="Back up now"
-                                    Command="{Binding BackupNowCommand}"
-                                    IsEnabled="{Binding !Busy}" />
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" MinHeight="84" MaxHeight="150">
-                        <Border Grid.Column="1" Background="{StaticResource InkBaseBrush}"
-                                BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
-                                CornerRadius="8" Padding="2">
-                            <ListBox ItemsSource="{Binding Snapshots}"
-                                     SelectedItem="{Binding SelectedSnapshot}"
-                                     Background="Transparent" BorderThickness="0"
-                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate x:DataType="m:Snapshot">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">
-                                            <Border Grid.Column="0" Width="7" CornerRadius="3"
-                                                    Margin="0,1,12,1"
-                                                    Background="{Binding Label, Converter={StaticResource LabelBrush}}" />
-                                            <StackPanel Grid.Column="1" Spacing="1">
-                                                <TextBlock Text="{Binding TakenAtDisplay}"
-                                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                                           FontSize="13" FontWeight="SemiBold" />
-                                                <TextBlock Text="{Binding SubLine}"
-                                                           Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
-                                            </StackPanel>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </Border>
-
-                        <!-- save preview: shown only when a matching image exists -->
-                        <Border Grid.Column="0" Width="200" Margin="0,0,10,0"
-                                IsVisible="{Binding HasPreviewImage}"
-                                Background="{StaticResource InkBaseBrush}"
-                                BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
-                                CornerRadius="8" Padding="4">
-                            <Image Source="{Binding PreviewImage}" Stretch="Uniform" />
-                        </Border>
-                    </Grid>
-
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10"
-                                HorizontalAlignment="Right" Margin="0,12,0,0">
-                        <Button Classes="ghost" Content="Open this backup"
-                                Command="{Binding OpenSnapshotFolderCommand}"
-                                IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                        <Button Classes="danger" Content="Delete"
-                                Command="{Binding DeleteSnapshotCommand}"
-                                IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                        <Button Classes="primary" Content="Restore this backup"
-                                Command="{Binding RestoreSelectedCommand}"
-                                IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <ScrollViewer x:Name="EditorScroller" Padding="0"
+            <!-- Right panel is an accordion: each section is a collapsible Expander
+                 stacked top-down in one scroller, so the sections stay together (no
+                 big gap on tall/fullscreen windows) and any can be collapsed to
+                 reclaim vertical space. The width-capped wrapper stops a long path
+                 TextBox from stretching the layout — Avalonia 12's ScrollViewer
+                 measures content unbounded horizontally even with scrolling Disabled. -->
+            <ScrollViewer x:Name="EditorScroller" Grid.Row="0" Padding="0"
+                          IsVisible="{Binding HasProfile}"
                           VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <!-- Pin the content width to the scroller's actual width. Avalonia 12's
-                     ScrollViewer measures content with unbounded width even when
-                     horizontal scrolling is Disabled, so a long path TextBox would
-                     otherwise stretch the layout and push the Browse buttons off the
-                     right edge at narrow window widths. Capping the wrapper at the
-                     scroller's Bounds.Width forces the TextBoxes to clip instead. -->
-                <Border Padding="24,22,24,6" HorizontalAlignment="Stretch"
+                <Border Padding="24,22,24,16" HorizontalAlignment="Stretch"
                         MaxWidth="{Binding #EditorScroller.Bounds.Width}">
-                <StackPanel Spacing="18">
+                <StackPanel Spacing="14">
 
                     <!-- header: name + watch state -->
                     <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
@@ -180,10 +105,10 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- folders card -->
-                    <Border Classes="card">
-                        <StackPanel Spacing="14">
-                            <TextBlock Classes="eyebrow" Text="FOLDERS" />
+                    <!-- FOLDERS -->
+                    <Expander Classes="section" IsExpanded="True">
+                        <Expander.Header><TextBlock Classes="eyebrow" Text="FOLDERS" /></Expander.Header>
+                        <StackPanel Spacing="14" Margin="2,4,2,2">
 
                             <StackPanel Spacing="4">
                                 <TextBlock Classes="field" Text="Save folder to watch" />
@@ -207,12 +132,12 @@
                                 </Grid>
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </Expander>
 
-                    <!-- options card -->
-                    <Border Classes="card">
-                        <StackPanel Spacing="14">
-                            <TextBlock Classes="eyebrow" Text="HOW IT BACKS UP" />
+                    <!-- HOW IT BACKS UP -->
+                    <Expander Classes="section" IsExpanded="True">
+                        <Expander.Header><TextBlock Classes="eyebrow" Text="HOW IT BACKS UP" /></Expander.Header>
+                        <StackPanel Spacing="14" Margin="2,4,2,2">
 
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
                                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
@@ -258,12 +183,74 @@
                                         Command="{Binding SaveProfileCommand}" />
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </Expander>
+
+                    <!-- BACKUPS -->
+                    <Expander Classes="section" IsExpanded="True">
+                        <Expander.Header><TextBlock Classes="eyebrow" Text="BACKUPS" /></Expander.Header>
+                        <StackPanel Spacing="12" Margin="2,4,2,2">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                <Button Classes="ghost" Content="Open folder"
+                                        Command="{Binding OpenBackupFolderCommand}" />
+                                <Button Classes="primary" Content="Back up now"
+                                        Command="{Binding BackupNowCommand}"
+                                        IsEnabled="{Binding !Busy}" />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="Auto,*" MinHeight="84" MaxHeight="220">
+                                <Border Grid.Column="1" Background="{StaticResource InkBaseBrush}"
+                                        BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
+                                        CornerRadius="8" Padding="2">
+                                    <ListBox ItemsSource="{Binding Snapshots}"
+                                             SelectedItem="{Binding SelectedSnapshot}"
+                                             Background="Transparent" BorderThickness="0"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="m:Snapshot">
+                                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,5">
+                                                    <Border Grid.Column="0" Width="7" CornerRadius="3"
+                                                            Margin="0,1,12,1"
+                                                            Background="{Binding Label, Converter={StaticResource LabelBrush}}" />
+                                                    <StackPanel Grid.Column="1" Spacing="1">
+                                                        <TextBlock Text="{Binding TakenAtDisplay}"
+                                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                                   FontSize="13" FontWeight="SemiBold" />
+                                                        <TextBlock Text="{Binding SubLine}"
+                                                                   Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Border>
+
+                                <!-- save preview: shown only when a matching image exists -->
+                                <Border Grid.Column="0" Width="200" Margin="0,0,10,0"
+                                        IsVisible="{Binding HasPreviewImage}"
+                                        Background="{StaticResource InkBaseBrush}"
+                                        BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
+                                        CornerRadius="8" Padding="4">
+                                    <Image Source="{Binding PreviewImage}" Stretch="Uniform" />
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                                <Button Classes="ghost" Content="Open this backup"
+                                        Command="{Binding OpenSnapshotFolderCommand}"
+                                        IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                <Button Classes="danger" Content="Delete"
+                                        Command="{Binding DeleteSnapshotCommand}"
+                                        IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                <Button Classes="primary" Content="Restore this backup"
+                                        Command="{Binding RestoreSelectedCommand}"
+                                        IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Expander>
 
                 </StackPanel>
                 </Border>
             </ScrollViewer>
-            </DockPanel>
 
             <!-- empty state -->
             <StackPanel Grid.Row="0" IsVisible="{Binding !HasProfile}"
