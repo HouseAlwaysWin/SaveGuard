@@ -35,8 +35,10 @@ public partial class App : Application
             window.WireDialogs(vm);
 
             // Clicking the window's X minimizes to the tray instead of quitting.
+            // Flush any debounced edit first so closing never drops a recent change.
             window.Closing += (_, e) =>
             {
+                vm.SaveNow();
                 if (!_reallyQuitting)
                 {
                     e.Cancel = true;
@@ -51,6 +53,7 @@ public partial class App : Application
             desktop.MainWindow = window;
             desktop.ShutdownRequested += (_, _) =>
             {
+                vm.SaveNow();
                 watcher.Dispose();
                 DisposeTray();
             };

@@ -374,6 +374,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         ScheduleSave(watcherRelevant, p);
     }
 
+    /// <summary>Flush any debounced edit immediately — call before the window hides
+    /// or the app exits so a quick edit-then-quit never loses changes.</summary>
+    public void SaveNow()
+    {
+        if (_saveTimer.IsEnabled || _watcherDirty) FlushSave();
+    }
+
     /// <summary>Restart the quiet-window timer; remember if a watcher rebuild is owed.</summary>
     private void ScheduleSave(bool watcherRelevant, GameProfile? profile)
     {
