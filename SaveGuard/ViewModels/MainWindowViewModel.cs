@@ -48,8 +48,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         nameof(GameProfile.Name), nameof(GameProfile.ImageExtensions),
     };
 
-    /// <summary>Set by the View. Opens a folder picker, returns the chosen path or null.</summary>
-    public Func<string, Task<string?>>? PickFolder { get; set; }
+    /// <summary>Set by the View. Opens a folder picker starting at the given path
+    /// (may be null/empty), and returns the chosen path or null.</summary>
+    public Func<string, string?, Task<string?>>? PickFolder { get; set; }
 
     /// <summary>Set by the View. Shows a yes/no confirm dialog.</summary>
     public Func<string, string, Task<bool>>? Confirm { get; set; }
@@ -331,7 +332,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private async Task BrowseWatch()
     {
         if (SelectedProfile == null || PickFolder == null) return;
-        var path = await PickFolder(L["Picker.WatchTitle"]);
+        var path = await PickFolder(L["Picker.WatchTitle"], SelectedProfile.WatchPath);
         if (path != null) SelectedProfile.WatchPath = path;
     }
 
@@ -339,7 +340,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private async Task BrowseBackup()
     {
         if (SelectedProfile == null || PickFolder == null) return;
-        var path = await PickFolder(L["Picker.BackupTitle"]);
+        var path = await PickFolder(L["Picker.BackupTitle"], SelectedProfile.BackupRoot);
         if (path != null) SelectedProfile.BackupRoot = path;
     }
 
