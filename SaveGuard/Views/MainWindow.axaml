@@ -201,6 +201,8 @@
                         <Expander.Header><TextBlock Classes="eyebrow" Text="{loc:Loc Section.Backups}" /></Expander.Header>
                         <StackPanel Spacing="12" Margin="2,4,2,2">
                             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                <Button Classes="ghost" Content="{loc:Loc Backups.Refresh}"
+                                        Command="{Binding RefreshCommand}" />
                                 <Button Classes="ghost" Content="{loc:Loc Backups.OpenFolder}"
                                         Command="{Binding OpenBackupFolderCommand}" />
                                 <Button Classes="primary" Content="{loc:Loc Backups.BackupNow}"
