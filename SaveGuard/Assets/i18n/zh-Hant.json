@@ -26,6 +26,7 @@
   "How.ImageWatermark": ".png, .webp （留空＝不顯示）",
 
   "Section.Backups": "備份",
+  "Backups.Refresh": "重新整理",
   "Backups.OpenFolder": "開啟資料夾",
   "Backups.BackupNow": "立即備份",
   "Backups.OpenThis": "開啟此備份",

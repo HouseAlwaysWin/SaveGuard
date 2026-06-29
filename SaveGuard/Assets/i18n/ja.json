@@ -26,6 +26,7 @@
   "How.ImageWatermark": ".png, .webp （空欄＝表示しない）",
 
   "Section.Backups": "バックアップ",
+  "Backups.Refresh": "再読み込み",
   "Backups.OpenFolder": "フォルダーを開く",
   "Backups.BackupNow": "今すぐバックアップ",
   "Backups.OpenThis": "このバックアップを開く",

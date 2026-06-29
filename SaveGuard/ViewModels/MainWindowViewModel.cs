@@ -417,6 +417,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Re-scan the backup folder and reload the snapshots list.</summary>
+    [RelayCommand]
+    private void Refresh() => RefreshSnapshots();
+
     [RelayCommand]
     private void OpenBackupFolder()
     {

@@ -26,6 +26,7 @@
   "How.ImageWatermark": ".png, .webp   (blank = no preview)",
 
   "Section.Backups": "BACKUPS",
+  "Backups.Refresh": "Refresh",
   "Backups.OpenFolder": "Open folder",
   "Backups.BackupNow": "Back up now",
   "Backups.OpenThis": "Open this backup",
