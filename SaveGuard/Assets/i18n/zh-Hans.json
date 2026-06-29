@@ -24,6 +24,9 @@
   "How.AutoBackup": "游戏存档时自动备份",
   "How.ImageTypes": "显示这些类型的预览图（选填）",
   "How.ImageWatermark": ".png, .webp （留空＝不显示）",
+  "How.CompanionLabel": "也一起备份这些文件（存档文件夹外）",
+  "How.CompanionWatermark": "例如 C:\\…\\PlayerProfiles\\Public\\profile8.lsf （每行一个路径）",
+  "How.CompanionHint": "这些文件会跟着每次快照，还原时放回原本的位置。支持绝对路径，或用 ** 递归通配符。",
 
   "Section.Backups": "备份",
   "Backups.Refresh": "刷新",

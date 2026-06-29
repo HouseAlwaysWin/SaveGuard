@@ -52,12 +52,37 @@ public sealed partial class GameProfile : ObservableObject
     /// <summary>Quiet period (ms) after the last write before a snapshot fires.</summary>
     [ObservableProperty] private int _debounceMs = 2000;
 
+    /// <summary>
+    /// Extra files OUTSIDE the watch folder that are captured with every snapshot
+    /// and put back on restore (one per line). Each line is an absolute file path
+    /// or a wildcard pattern: containing "**" = recursive (the text before "**" is
+    /// the base directory, after it the filename pattern); "*"/"?" = that directory
+    /// only. BG3 Honour mode keeps its run-failed flag in profile8.lsf, two levels
+    /// above the save folder — restoring the save alone never clears it.
+    /// </summary>
+    [ObservableProperty] private string _companionFiles = "";
+
     [JsonIgnore]
     public IReadOnlyList<string> TriggerExtensionListValue => TriggerExtensionList();
 
     public IReadOnlyList<string> TriggerExtensionList() => ParseExtensions(TriggerExtensions);
 
     public IReadOnlyList<string> ImageExtensionList() => ParseExtensions(ImageExtensions);
+
+    /// <summary>The companion patterns, one per non-blank line (trimmed).</summary>
+    public IReadOnlyList<string> CompanionFileList()
+    {
+        if (string.IsNullOrWhiteSpace(CompanionFiles))
+            return Array.Empty<string>();
+
+        var list = new List<string>();
+        foreach (var line in CompanionFiles.Split('\n'))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.Length > 0) list.Add(trimmed);
+        }
+        return list;
+    }
 
     /// <summary>Splits a comma-separated extension list into normalized ".ext" forms.</summary>
     private static IReadOnlyList<string> ParseExtensions(string? raw)

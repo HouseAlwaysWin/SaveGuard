@@ -24,6 +24,9 @@
   "How.AutoBackup": "Auto-backup whenever the game saves",
   "How.ImageTypes": "Show preview image of these types (optional)",
   "How.ImageWatermark": ".png, .webp   (blank = no preview)",
+  "How.CompanionLabel": "Also back up these files (outside the save folder)",
+  "How.CompanionWatermark": "e.g. C:\\…\\PlayerProfiles\\Public\\profile8.lsf   (one path per line)",
+  "How.CompanionHint": "Captured with every snapshot and restored to their original location. Absolute paths, or use ** for a recursive wildcard.",
 
   "Section.Backups": "BACKUPS",
   "Backups.Refresh": "Refresh",

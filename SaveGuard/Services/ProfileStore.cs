@@ -58,16 +58,19 @@ public sealed class ProfileStore
     private List<GameProfile> Seed()
     {
         var list = new List<GameProfile>();
-        var bg3 = TryBg3SavePath();
-        if (bg3 != null)
+        var (story, profileFlag) = TryBg3Paths();
+        if (story != null)
         {
             list.Add(new GameProfile
             {
                 Name = "Baldur's Gate 3 (Honour)",
-                WatchPath = bg3,
+                WatchPath = story,
                 BackupRoot = DefaultBackupRoot,
                 Recursive = true,
                 TriggerExtensions = ".lsv",
+                // Honour mode's run-failed flag lives in profile8.lsf, outside the
+                // save folder — capture it so a restore actually clears a team-wipe.
+                CompanionFiles = profileFlag ?? "",
                 MaxSnapshots = 25,
                 AutoWatch = true,
                 DebounceMs = 2500,
@@ -79,18 +82,20 @@ public sealed class ProfileStore
     /// <summary>
     /// BG3 saves live under LOCALAPPDATA on Windows. The profile id between
     /// PlayerProfiles and Savegames varies, so we land on PlayerProfiles\Public
-    /// when present, else the Larian folder — the user can refine it.
+    /// when present, else the Larian folder — the user can refine it. Also returns
+    /// the Public\profile8.lsf path (the Honour-mode failure flag) when found.
     /// </summary>
-    private static string? TryBg3SavePath()
+    private static (string? story, string? profileFlag) TryBg3Paths()
     {
-        if (!OperatingSystem.IsWindows()) return null;
+        if (!OperatingSystem.IsWindows()) return (null, null);
 
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var story = Path.Combine(local, "Larian Studios", "Baldur's Gate 3",
-            "PlayerProfiles", "Public", "Savegames", "Story");
-        if (Directory.Exists(story)) return story;
+        var publicDir = Path.Combine(local, "Larian Studios", "Baldur's Gate 3", "PlayerProfiles", "Public");
+        var story = Path.Combine(publicDir, "Savegames", "Story");
+        if (Directory.Exists(story))
+            return (story, Path.Combine(publicDir, "profile8.lsf"));
 
         var larian = Path.Combine(local, "Larian Studios", "Baldur's Gate 3");
-        return Directory.Exists(larian) ? larian : null;
+        return (Directory.Exists(larian) ? larian : null, null);
     }
 }

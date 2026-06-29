@@ -193,6 +193,16 @@
                                              PlaceholderText="{loc:Loc How.ImageWatermark}" />
                                 </StackPanel>
                             </Grid>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Classes="field" Text="{loc:Loc How.CompanionLabel}" />
+                                <TextBox Text="{Binding SelectedProfile.CompanionFiles}"
+                                         AcceptsReturn="True" TextWrapping="NoWrap"
+                                         MinHeight="58" MaxHeight="120"
+                                         VerticalContentAlignment="Top"
+                                         PlaceholderText="{loc:Loc How.CompanionWatermark}" />
+                                <TextBlock Classes="field" Text="{loc:Loc How.CompanionHint}" TextWrapping="Wrap" />
+                            </StackPanel>
                         </StackPanel>
                     </Expander>
 
