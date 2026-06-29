@@ -99,16 +99,24 @@ public sealed class BackupEngine
         {
             if (!Directory.Exists(snap.FolderPath))
                 throw new InvalidOperationException("That snapshot folder no longer exists.");
-            if (!Directory.Exists(p.WatchPath))
-                throw new InvalidOperationException("The game's save folder no longer exists.");
 
-            // 1) Safety net: snapshot the current live state first.
-            CreateSnapshotAsync(p, "pre-restore", ct).GetAwaiter().GetResult();
+            // The game may have deleted the entire save folder (e.g. BG3 wipes an
+            // Honour-mode save on death) — that is *exactly* when a restore is needed,
+            // so we recreate the folder rather than refusing. A pre-restore safety
+            // snapshot is only worth taking when there's actually a live save to
+            // preserve; restoring over an already-gone save has nothing to back up.
+            if (Directory.Exists(p.WatchPath) &&
+                Directory.EnumerateFileSystemEntries(p.WatchPath).Any())
+            {
+                CreateSnapshotAsync(p, "pre-restore", ct).GetAwaiter().GetResult();
+                ClearDirectoryContents(p.WatchPath);
+            }
+            else
+            {
+                Directory.CreateDirectory(p.WatchPath); // recreate the deleted/empty folder
+            }
 
-            // 2) Clear the live folder's contents (keep the folder itself).
-            ClearDirectoryContents(p.WatchPath);
-
-            // 3) Copy the chosen snapshot back in, skipping our marker file.
+            // Copy the chosen snapshot back in, skipping our marker file.
             CopyTree(snap.FolderPath, p.WatchPath, ct, skipName: ".saveguard");
         }, ct);
 
