@@ -24,6 +24,9 @@
   "How.AutoBackup": "ゲームがセーブしたら自動バックアップ",
   "How.ImageTypes": "この種類のプレビュー画像を表示（任意）",
   "How.ImageWatermark": ".png, .webp （空欄＝表示しない）",
+  "How.CompanionLabel": "これらのファイルも一緒にバックアップ（セーブフォルダーの外）",
+  "How.CompanionWatermark": "例: C:\\…\\PlayerProfiles\\Public\\profile8.lsf （1行に1つ）",
+  "How.CompanionHint": "スナップショットのたびに取得し、復元時に元の場所へ戻します。絶対パス、または ** で再帰ワイルドカード。",
 
   "Section.Backups": "バックアップ",
   "Backups.Refresh": "再読み込み",

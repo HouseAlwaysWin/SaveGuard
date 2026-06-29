@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using SaveGuard.Models;
@@ -18,6 +19,23 @@ namespace SaveGuard.Services;
 public sealed class BackupEngine
 {
     private const string TimestampFormat = "yyyy-MM-dd_HH-mm-ss";
+
+    /// <summary>Per-snapshot bookkeeping that must never land back in the save folder.</summary>
+    private const string Marker = ".saveguard";
+    private const string CompanionDir = "_companions";
+    private const string CompanionManifest = "manifest.json";
+
+    private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
+    private static readonly char[] DirSeparators = { '/', '\\' };
+    private static readonly char[] WildChars = { '*', '?' };
+
+    /// <summary>One captured companion file: where it lives in the snapshot and the
+    /// absolute path it must be restored to.</summary>
+    private sealed class CompanionEntry
+    {
+        public string Stored { get; set; } = "";
+        public string Original { get; set; } = "";
+    }
 
     /// <summary>
     /// Validates a profile's paths. Returns null if OK, otherwise an error
@@ -73,8 +91,11 @@ public sealed class BackupEngine
 
             var (files, bytes) = CopyTree(p.WatchPath, dest, ct);
 
+            // Also grab any companion files that live outside the watch folder.
+            var (cFiles, cBytes) = CaptureCompanions(p, dest, ct);
+
             // Write a tiny marker so labels survive restarts.
-            try { File.WriteAllText(Path.Combine(dest, ".saveguard"), label); } catch { /* non-fatal */ }
+            try { File.WriteAllText(Path.Combine(dest, Marker), label); } catch { /* non-fatal */ }
 
             EnforceRotation(p);
 
@@ -82,8 +103,8 @@ public sealed class BackupEngine
             {
                 FolderPath = dest,
                 TakenAt = DateTime.Now,
-                SizeBytes = bytes,
-                FileCount = files,
+                SizeBytes = bytes + cBytes,
+                FileCount = files + cFiles,
                 Label = label,
             };
         }, ct);
@@ -116,8 +137,12 @@ public sealed class BackupEngine
                 Directory.CreateDirectory(p.WatchPath); // recreate the deleted/empty folder
             }
 
-            // Copy the chosen snapshot back in, skipping our marker file.
-            CopyTree(snap.FolderPath, p.WatchPath, ct, skipName: ".saveguard");
+            // Copy the save tree back in, but skip the snapshot's bookkeeping —
+            // the marker and the companion store must NOT pollute the save folder.
+            CopyTree(snap.FolderPath, p.WatchPath, ct, skipTopLevel: BookkeepingTop());
+
+            // Put each companion file back at its own original absolute path.
+            RestoreCompanions(snap.FolderPath);
         }, ct);
 
     public List<Snapshot> ListSnapshots(GameProfile p)
@@ -136,14 +161,16 @@ public sealed class BackupEngine
                 taken = Directory.GetCreationTime(sub);
 
             long bytes = 0; int files = 0;
+            var bookkeeping = BookkeepingTop();
             foreach (var f in Directory.EnumerateFiles(sub, "*", SearchOption.AllDirectories))
             {
-                if (Path.GetFileName(f) == ".saveguard") continue;
+                // Count only real save files, not the marker or the companion store.
+                if (bookkeeping.Contains(TopSegment(Path.GetRelativePath(sub, f)))) continue;
                 try { bytes += new FileInfo(f).Length; files++; } catch { /* skip */ }
             }
 
             string label = "auto";
-            var marker = Path.Combine(sub, ".saveguard");
+            var marker = Path.Combine(sub, Marker);
             if (File.Exists(marker))
             {
                 try { label = File.ReadAllText(marker).Trim(); } catch { /* keep default */ }
@@ -195,7 +222,10 @@ public sealed class BackupEngine
 
     // ---------- file helpers ----------
 
-    private static (int files, long bytes) CopyTree(string sourceDir, string destDir, CancellationToken ct, string? skipName = null)
+    /// <summary>Recursively copies sourceDir into destDir. Any relative path whose
+    /// first segment is in <paramref name="skipTopLevel"/> is skipped entirely
+    /// (used to leave the _companions/ store and the marker out of a restore).</summary>
+    private static (int files, long bytes) CopyTree(string sourceDir, string destDir, CancellationToken ct, ISet<string>? skipTopLevel = null)
     {
         int files = 0; long bytes = 0;
         Directory.CreateDirectory(destDir);
@@ -204,15 +234,16 @@ public sealed class BackupEngine
         {
             ct.ThrowIfCancellationRequested();
             var rel = Path.GetRelativePath(sourceDir, dir);
+            if (skipTopLevel != null && skipTopLevel.Contains(TopSegment(rel))) continue;
             Directory.CreateDirectory(Path.Combine(destDir, rel));
         }
 
         foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories))
         {
             ct.ThrowIfCancellationRequested();
-            if (skipName != null && Path.GetFileName(file) == skipName) continue;
-
             var rel = Path.GetRelativePath(sourceDir, file);
+            if (skipTopLevel != null && skipTopLevel.Contains(TopSegment(rel))) continue;
+
             var target = Path.Combine(destDir, rel);
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
 
@@ -230,6 +261,131 @@ public sealed class BackupEngine
         }
 
         return (files, bytes);
+    }
+
+    /// <summary>The first path segment of a relative path (e.g. "_companions/x" → "_companions").</summary>
+    private static string TopSegment(string relativePath)
+    {
+        int i = relativePath.IndexOfAny(DirSeparators);
+        return i < 0 ? relativePath : relativePath[..i];
+    }
+
+    private static ISet<string> BookkeepingTop()
+        => new HashSet<string>(PathStringComparer) { CompanionDir, Marker };
+
+    // ---------- companion files (outside the watch folder) ----------
+
+    /// <summary>Copies the profile's companion files into &lt;dest&gt;/_companions/ and
+    /// writes a manifest of their original absolute paths. Missing files are skipped
+    /// (e.g. a flag not yet written); locked files are skipped rather than failing the
+    /// whole snapshot. Returns the count/bytes actually captured.</summary>
+    private static (int files, long bytes) CaptureCompanions(GameProfile p, string dest, CancellationToken ct)
+    {
+        var resolved = ResolveCompanionFiles(p.CompanionFileList());
+        if (resolved.Count == 0) return (0, 0);
+
+        var compDir = Path.Combine(dest, CompanionDir);
+        Directory.CreateDirectory(compDir);
+
+        var entries = new List<CompanionEntry>();
+        int files = 0; long bytes = 0;
+        for (int i = 0; i < resolved.Count; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var src = resolved[i];
+            // Prefix keeps same-named files from different folders from colliding.
+            var stored = $"{i:000}_{Path.GetFileName(src)}";
+            var target = Path.Combine(compDir, stored);
+            try
+            {
+                CopyFileShared(src, target);
+                bytes += new FileInfo(target).Length;
+                files++;
+                entries.Add(new CompanionEntry { Stored = stored, Original = Path.GetFullPath(src) });
+            }
+            catch (IOException) { /* locked — skip */ }
+            catch (UnauthorizedAccessException) { /* skip */ }
+        }
+
+        if (entries.Count > 0)
+            try { File.WriteAllText(Path.Combine(compDir, CompanionManifest), JsonSerializer.Serialize(entries, JsonOpts)); }
+            catch { /* non-fatal */ }
+        else
+            try { Directory.Delete(compDir, recursive: true); } catch { /* nothing captured */ }
+
+        return (files, bytes);
+    }
+
+    /// <summary>Reads a snapshot's companion manifest and copies each stored file back
+    /// to its original absolute path (creating the target directory if needed).</summary>
+    private static void RestoreCompanions(string snapshotDir)
+    {
+        var manifestPath = Path.Combine(snapshotDir, CompanionDir, CompanionManifest);
+        if (!File.Exists(manifestPath)) return;
+
+        List<CompanionEntry>? entries;
+        try { entries = JsonSerializer.Deserialize<List<CompanionEntry>>(File.ReadAllText(manifestPath)); }
+        catch { return; }
+        if (entries == null) return;
+
+        foreach (var e in entries)
+        {
+            if (string.IsNullOrWhiteSpace(e.Stored) || string.IsNullOrWhiteSpace(e.Original)) continue;
+            var stored = Path.Combine(snapshotDir, CompanionDir, e.Stored);
+            if (!File.Exists(stored)) continue;
+            try
+            {
+                var targetDir = Path.GetDirectoryName(e.Original);
+                if (!string.IsNullOrEmpty(targetDir)) Directory.CreateDirectory(targetDir);
+                CopyFileShared(stored, e.Original);
+            }
+            catch (IOException) { /* target locked — skip */ }
+            catch (UnauthorizedAccessException) { /* skip */ }
+        }
+    }
+
+    /// <summary>Expands the companion patterns into a de-duplicated list of absolute file paths.</summary>
+    private static List<string> ResolveCompanionFiles(IReadOnlyList<string> patterns)
+    {
+        var result = new List<string>();
+        var seen = new HashSet<string>(PathStringComparer);
+        foreach (var pattern in patterns)
+            foreach (var f in ExpandPattern(pattern))
+            {
+                var full = Path.GetFullPath(f);
+                if (seen.Add(full)) result.Add(full);
+            }
+        return result;
+    }
+
+    /// <summary>One pattern → the files it matches. No wildcard = the literal file (if it
+    /// exists); "**" = recursive under the base dir; "*"/"?" = that directory only.</summary>
+    private static IEnumerable<string> ExpandPattern(string pattern)
+    {
+        pattern = pattern.Trim();
+        if (pattern.Length == 0) return Array.Empty<string>();
+
+        if (pattern.IndexOfAny(WildChars) < 0)
+            return File.Exists(pattern) ? new[] { pattern } : Array.Empty<string>();
+
+        try
+        {
+            if (pattern.Contains("**"))
+            {
+                int idx = pattern.IndexOf("**", StringComparison.Ordinal);
+                var baseDir = pattern[..idx].TrimEnd(DirSeparators);
+                var filePart = pattern[(idx + 2)..].TrimStart(DirSeparators);
+                if (filePart.Length == 0) filePart = "*";
+                if (baseDir.Length == 0 || !Directory.Exists(baseDir)) return Array.Empty<string>();
+                return Directory.GetFiles(baseDir, filePart, SearchOption.AllDirectories);
+            }
+
+            var dir = Path.GetDirectoryName(pattern);
+            var name = Path.GetFileName(pattern);
+            if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir)) return Array.Empty<string>();
+            return Directory.GetFiles(dir, name, SearchOption.TopDirectoryOnly);
+        }
+        catch { return Array.Empty<string>(); }
     }
 
     /// <summary>Copy allowing the source to be open elsewhere (game may hold it).</summary>
@@ -275,6 +431,9 @@ public sealed class BackupEngine
 
     private static StringComparison PathComparison =>
         OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+    private static StringComparer PathStringComparer =>
+        OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
     private static string SanitizeFolderName(string name)
     {
