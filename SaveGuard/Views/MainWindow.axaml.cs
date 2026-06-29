@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -14,17 +15,41 @@ public partial class MainWindow : Window
     /// <summary>Give the ViewModel access to platform dialogs without coupling it to the View.</summary>
     public void WireDialogs(MainWindowViewModel vm)
     {
-        vm.PickFolder = async title =>
+        vm.PickFolder = async (title, startPath) =>
         {
-            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-            {
-                Title = title,
-                AllowMultiple = false,
-            });
+            var options = new FolderPickerOpenOptions { Title = title, AllowMultiple = false };
+
+            // Open the picker at whatever is already typed in the field (or the nearest
+            // existing parent), so it's not the OS default each time.
+            var existing = NearestExistingDir(startPath);
+            if (existing != null)
+                options.SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(existing);
+
+            var folders = await StorageProvider.OpenFolderPickerAsync(options);
             var first = folders.FirstOrDefault();
             return first?.TryGetLocalPath();
         };
 
         vm.Confirm = (title, message) => ConfirmDialog.Show(this, title, message);
+    }
+
+    /// <summary>The path itself if it's an existing directory, else its nearest existing
+    /// ancestor — so a half-typed or not-yet-created path still opens somewhere sensible.</summary>
+    private static string? NearestExistingDir(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        try
+        {
+            var dir = path.Trim();
+            while (!string.IsNullOrEmpty(dir))
+            {
+                if (Directory.Exists(dir)) return dir;
+                var parent = Path.GetDirectoryName(dir);
+                if (string.IsNullOrEmpty(parent) || parent == dir) break;
+                dir = parent;
+            }
+        }
+        catch { /* malformed path → just use the default */ }
+        return null;
     }
 }
