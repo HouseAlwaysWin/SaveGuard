@@ -20,6 +20,9 @@ Versioned backups for any game's saves. SaveGuard watches a game's save folder a
 - **One-click restore** — and a `pre-restore` safety snapshot is taken first, so even a wrong restore is undoable.
 - **Whole-folder snapshots** — saves are often multi-file (BG3's `meta.lsf` must match its `.lsv`); copying the whole folder keeps them consistent.
 - **Import from Steam** — scan your installed Steam games and auto-detect each one's save folder (built-in database, Steam Cloud, or name match); anything it can't find falls back to manual selection.
+- **Game icons** — imported Steam games show their store icon (or a letter avatar); set a custom icon per game.
+- **Exclude files** — keep chosen files inside the save folder out of backups (e.g. logs); they're never copied, and never touched on restore.
+- **Shared backup folder** — set one backup location in Settings for every game (each can still add its own subfolder), or give each game its own absolute path.
 - **Save preview** — shows the in-game screenshot next to each backup (configurable image types).
 - **Runs in the tray** — closing the window hides it to the system tray, so watching keeps running in the background.
 - **Auto-update** — installed builds update themselves from GitHub Releases.
@@ -41,11 +44,13 @@ Leave **Only trigger on these types** blank to react to any change (when unsure,
 
 Or click **↓ Import from Steam** in the sidebar: SaveGuard scans your installed Steam games and pre-fills each one's save folder from a built-in database, your Steam Cloud folder, or a name match. Tick the games to protect — anything it couldn't locate is left blank for you to pick manually.
 
+Open **⚙ Settings** to set a **shared backup folder** used by every game — then each game's backup path can be a relative subfolder (or left blank), and "Apply to all games" switches existing games over in one click. The language picker lives here too.
+
 ## How it works
 
 - Each backup is a **complete copy** of the save folder into `BackupRoot/<game>/<timestamp>/` — never a per-file diff — because saves only restore correctly as a set.
 - The **backup engine is UI-free** (`Services/BackupEngine.cs`): pure .NET file IO, cross-platform, unit-testable.
-- Settings persist to `%APPDATA%\SaveGuard\profiles.json`; backups default to `%APPDATA%\SaveGuard\Backups`.
+- Settings persist to `%APPDATA%\SaveGuard\profiles.json`; backups default to `%APPDATA%\SaveGuard\Backups`, or a shared folder you set in **Settings**.
 - Edge cases handled: write-in-progress and event storms (debounce), files the game still holds (shared-read copy, skip the truly locked ones), recursive backup-of-backups (`ValidateProfile` blocks it), spurious backup during a restore (the watcher is paused), and rotation that evicts `pre-restore` safety copies before your real backups.
 
 ## Build from source
