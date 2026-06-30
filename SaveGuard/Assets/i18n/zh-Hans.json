@@ -1,6 +1,7 @@
 {
   "App.Tagline": "为任何游戏存档做版本备份",
   "Rail.AddGame": "+  新增游戏",
+  "Rail.ImportSteam": "↓  从 Steam 导入",
   "Rail.Language": "语言",
 
   "Header.DeleteGame": "删除游戏",
@@ -57,6 +58,21 @@
   "Status.DeleteFailed": "无法删除：{0}",
   "Status.AutoBackedUp": "已自动备份 {0}，时间 {1}（{2} 个文件）。",
   "Status.AutoBackupFailed": "{0} 自动备份失败：{1}",
+  "Status.SteamImported": "已从 Steam 导入 {0} 款游戏。",
+
+  "Steam.ImportTitle": "从 Steam 导入游戏",
+  "Steam.Rescan": "重新扫描",
+  "Steam.SelectAll": "全选",
+  "Steam.AddSelected": "添加所选",
+  "Steam.Scanning": "正在扫描你的 Steam 游戏库…",
+  "Steam.Found": "找到 {0} 款已安装的游戏，请勾选要保护的游戏。",
+  "Steam.NoGames": "在你的 Steam 游戏库中找不到已安装的游戏。",
+  "Steam.NotInstalled": "这台电脑上找不到 Steam，请改用手动方式添加游戏。",
+  "Steam.SaveNotFound": "找不到存档文件夹 — 请手动选择",
+  "Steam.AlreadyAdded": "已添加",
+  "Steam.ResolvedFrom.Database": "存档文件夹来自内置游戏列表",
+  "Steam.ResolvedFrom.Cloud": "存档文件夹来自 Steam 云",
+  "Steam.ResolvedFrom.Heuristic": "可能的存档文件夹（按名称推测）— 请确认",
 
   "Dialog.DeleteProfile.Title": "删除配置",
   "Dialog.DeleteProfile.Body": "要将“{0}”从 SaveGuard 移除吗？\n\n你现有的备份文件不会被删除。",

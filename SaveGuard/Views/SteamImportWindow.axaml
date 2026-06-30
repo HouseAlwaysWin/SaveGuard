@@ -1,0 +1,80 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveGuard.ViewModels"
+        xmlns:loc="using:SaveGuard.Views"
+        x:Class="SaveGuard.Views.SteamImportWindow"
+        x:DataType="vm:SteamImportViewModel"
+        Width="660" Height="600"
+        MinWidth="520" MinHeight="420"
+        Title="{loc:Loc Steam.ImportTitle}"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource InkBaseBrush}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="22">
+
+        <!-- header -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,12">
+            <TextBlock Text="{loc:Loc Steam.ImportTitle}" FontSize="18" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
+            <TextBlock Text="{Binding Status}" Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding Busy}" Height="3"
+                         Foreground="{StaticResource GuardGoldBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2,0,0">
+                <Button Classes="ghost" Content="{loc:Loc Steam.Rescan}"
+                        Command="{Binding ScanCommand}" IsEnabled="{Binding !Busy}" />
+                <Button Classes="ghost" Content="{loc:Loc Steam.SelectAll}"
+                        Command="{Binding SelectAllCommand}" IsVisible="{Binding Scanned}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- body -->
+        <Border Grid.Row="1" Background="{StaticResource InkBaseBrush}"
+                BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
+                CornerRadius="8" Padding="4">
+            <Panel>
+                <ListBox x:Name="GamesList" ItemsSource="{Binding Games}"
+                         Background="Transparent" BorderThickness="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SteamGameRow">
+                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="4,7">
+                                <CheckBox Grid.Column="0" IsChecked="{Binding Selected}"
+                                          IsEnabled="{Binding !AlreadyAdded}"
+                                          VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <StackPanel Grid.Column="1" Spacing="3">
+                                    <TextBlock Text="{Binding Name}"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontWeight="SemiBold" FontSize="13"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBox Text="{Binding SavePath}" FontSize="11"
+                                             PlaceholderText="{loc:Loc Steam.SaveNotFound}" />
+                                    <TextBlock Text="{Binding StatusText}"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="10.5" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Classes="ghost" Content="{loc:Loc Common.Browse}"
+                                        VerticalAlignment="Center" Margin="8,0,0,0"
+                                        Command="{Binding #GamesList.DataContext.BrowseSaveCommand}"
+                                        CommandParameter="{Binding}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- "Steam not found" state -->
+                <TextBlock Text="{loc:Loc Steam.NotInstalled}" IsVisible="{Binding SteamMissing}"
+                           Foreground="{StaticResource TextMutedBrush}" FontSize="13"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
+            </Panel>
+        </Border>
+
+        <!-- footer -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,16,0,0">
+            <Button Grid.Column="1" Classes="ghost" Content="{loc:Loc Dialog.Cancel}"
+                    Command="{Binding CancelCommand}" Margin="0,0,10,0" />
+            <Button Grid.Column="2" Classes="primary" Content="{loc:Loc Steam.AddSelected}"
+                    Command="{Binding AddSelectedCommand}" IsEnabled="{Binding !Busy}" />
+        </Grid>
+    </Grid>
+</Window>

@@ -30,7 +30,9 @@ public partial class App : Application
             var engine = new BackupEngine();
             var watcher = new WatchService(engine);
             var updates = new UpdateService();
-            var vm = new MainWindowViewModel(store, engine, watcher, uiStore, updates);
+            var scanner = new SteamLibraryScanner();
+            var saveDb = SaveDatabase.Load();
+            var vm = new MainWindowViewModel(store, engine, watcher, uiStore, updates, scanner, saveDb);
 
             var window = new MainWindow { DataContext = vm };
             window.WireDialogs(vm);

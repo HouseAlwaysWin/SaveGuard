@@ -62,6 +62,10 @@ public sealed partial class GameProfile : ObservableObject
     /// </summary>
     [ObservableProperty] private string _companionFiles = "";
 
+    /// <summary>The Steam AppId this profile was imported from, or 0 when it was
+    /// added manually. Used to avoid importing the same game twice.</summary>
+    [ObservableProperty] private long _steamAppId;
+
     [JsonIgnore]
     public IReadOnlyList<string> TriggerExtensionListValue => TriggerExtensionList();
 

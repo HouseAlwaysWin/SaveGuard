@@ -1,6 +1,7 @@
 {
   "App.Tagline": "あらゆるゲームのセーブをバージョン管理してバックアップ",
   "Rail.AddGame": "+  ゲームを追加",
+  "Rail.ImportSteam": "↓  Steam から取り込み",
   "Rail.Language": "言語",
 
   "Header.DeleteGame": "ゲームを削除",
@@ -57,6 +58,21 @@
   "Status.DeleteFailed": "削除できませんでした：{0}",
   "Status.AutoBackedUp": "{0} を自動バックアップしました（{1}、{2} 個のファイル）。",
   "Status.AutoBackupFailed": "{0} の自動バックアップに失敗しました：{1}",
+  "Status.SteamImported": "Steam から {0} 本のゲームを取り込みました。",
+
+  "Steam.ImportTitle": "Steam からゲームを取り込み",
+  "Steam.Rescan": "再スキャン",
+  "Steam.SelectAll": "すべて選択",
+  "Steam.AddSelected": "選択を追加",
+  "Steam.Scanning": "Steam ライブラリをスキャン中…",
+  "Steam.Found": "インストール済みのゲームが {0} 本見つかりました。保護するものを選んでください。",
+  "Steam.NoGames": "Steam ライブラリにインストール済みのゲームが見つかりません。",
+  "Steam.NotInstalled": "この PC で Steam が見つかりませんでした。手動でゲームを追加してください。",
+  "Steam.SaveNotFound": "セーブフォルダーが見つかりません — 手動で選択してください",
+  "Steam.AlreadyAdded": "追加済み",
+  "Steam.ResolvedFrom.Database": "内蔵ゲームリストのセーブフォルダー",
+  "Steam.ResolvedFrom.Cloud": "Steam クラウドのセーブフォルダー",
+  "Steam.ResolvedFrom.Heuristic": "セーブフォルダーの候補（名前から推測）— ご確認ください",
 
   "Dialog.DeleteProfile.Title": "プロファイルを削除",
   "Dialog.DeleteProfile.Body": "「{0}」を SaveGuard から削除しますか？\n\n既存のバックアップファイルは削除されません。",

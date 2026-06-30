@@ -1,6 +1,6 @@
+using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
@@ -8,40 +8,45 @@ using SaveGuard.ViewModels;
 
 namespace SaveGuard.Views;
 
-public partial class MainWindow : Window
+public partial class SteamImportWindow : Window
 {
-    public MainWindow() => AvaloniaXamlLoader.Load(this);
+    public SteamImportWindow() => AvaloniaXamlLoader.Load(this);
 
-    /// <summary>Give the ViewModel access to platform dialogs without coupling it to the View.</summary>
-    public void WireDialogs(MainWindowViewModel vm)
+    /// <summary>Give the import view-model access to the folder picker and a way to
+    /// close itself — same indirection the main window uses for its dialogs.</summary>
+    public void WireDialogs(SteamImportViewModel vm)
     {
         vm.PickFolder = async (title, startPath) =>
         {
             var options = new FolderPickerOpenOptions { Title = title, AllowMultiple = false };
-
-            // Open the picker at whatever is already typed in the field (or the nearest
-            // existing parent), so it's not the OS default each time.
             var existing = NearestExistingDir(startPath);
             if (existing != null)
                 options.SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(existing);
 
             var folders = await StorageProvider.OpenFolderPickerAsync(options);
-            var first = folders.FirstOrDefault();
-            return first?.TryGetLocalPath();
+            return folders.FirstOrDefault()?.TryGetLocalPath();
         };
 
-        vm.Confirm = (title, message) => ConfirmDialog.Show(this, title, message);
-
-        vm.ShowSteamImport = async ivm =>
-        {
-            var dialog = new SteamImportWindow { DataContext = ivm };
-            dialog.WireDialogs(ivm);
-            await dialog.ShowDialog(this);
-        };
+        vm.RequestClose = Close;
     }
 
-    /// <summary>The path itself if it's an existing directory, else its nearest existing
-    /// ancestor — so a half-typed or not-yet-created path still opens somewhere sensible.</summary>
+    // Kick off the scan as soon as the dialog appears.
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        if (DataContext is SteamImportViewModel vm && vm.ScanCommand.CanExecute(null))
+            vm.ScanCommand.Execute(null);
+    }
+
+    // Cancel any in-flight background scan when the dialog closes.
+    protected override void OnClosed(EventArgs e)
+    {
+        (DataContext as SteamImportViewModel)?.CancelScan();
+        base.OnClosed(e);
+    }
+
+    /// <summary>The path itself if it exists, else its nearest existing ancestor, so a
+    /// half-typed/not-yet-created path still opens the picker somewhere sensible.</summary>
     private static string? NearestExistingDir(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return null;

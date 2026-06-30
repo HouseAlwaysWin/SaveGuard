@@ -24,6 +24,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly UiStateStore _uiStore;
     private readonly UiState _ui;
     private readonly UpdateService _updates;
+    private readonly SteamLibraryScanner _scanner;
+    private readonly SaveDatabase _saveDb;
 
     private Velopack.UpdateInfo? _pendingUpdate;
 
@@ -54,6 +56,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>Set by the View. Shows a yes/no confirm dialog.</summary>
     public Func<string, string, Task<bool>>? Confirm { get; set; }
+
+    /// <summary>Set by the View. Shows the "Import from Steam" dialog for the given VM.</summary>
+    public Func<SteamImportViewModel, Task>? ShowSteamImport { get; set; }
 
     public ObservableCollection<GameProfile> Profiles { get; } = new();
     public ObservableCollection<Snapshot> Snapshots { get; } = new();
@@ -152,13 +157,16 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     }
 
     public MainWindowViewModel(ProfileStore store, BackupEngine engine, WatchService watcher,
-                               UiStateStore uiStore, UpdateService updates)
+                               UiStateStore uiStore, UpdateService updates,
+                               SteamLibraryScanner scanner, SaveDatabase saveDb)
     {
         _store = store;
         _engine = engine;
         _watcher = watcher;
         _uiStore = uiStore;
         _updates = updates;
+        _scanner = scanner;
+        _saveDb = saveDb;
 
         _watcher.BackupCompleted += OnAutoBackupCompleted;
 
@@ -311,6 +319,40 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         Profiles.Add(p);
         SelectedProfile = p;
         SetStatus("Status.SetWatchFolder");
+    }
+
+    [RelayCommand]
+    private async Task ImportFromSteam()
+    {
+        if (ShowSteamImport == null) return;
+
+        var ivm = new SteamImportViewModel(_scanner, _saveDb, Profiles.Select(p => p.SteamAppId));
+        ivm.GamesConfirmed += OnSteamGamesConfirmed;
+        try { await ShowSteamImport(ivm); }
+        finally { ivm.GamesConfirmed -= OnSteamGamesConfirmed; }
+    }
+
+    private void OnSteamGamesConfirmed(IReadOnlyList<SteamGameRow> rows)
+    {
+        GameProfile? last = null;
+        foreach (var row in rows)
+        {
+            var p = new GameProfile
+            {
+                Name = row.Name,
+                WatchPath = row.SavePath,
+                BackupRoot = _store.DefaultBackupRoot,
+                AutoWatch = false, // off until the user confirms the path is right
+                SteamAppId = row.Game.AppId,
+                TriggerExtensions = row.PresetTriggerExtensions ?? "",
+                CompanionFiles = row.PresetCompanionFiles ?? "",
+            };
+            Profiles.Add(p);
+            last = p;
+        }
+        if (last != null) SelectedProfile = last;
+        Persist();
+        SetStatus("Status.SteamImported", rows.Count);
     }
 
     [RelayCommand]

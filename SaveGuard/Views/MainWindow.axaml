@@ -45,6 +45,10 @@
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                             Command="{Binding AddProfileCommand}"
                             Content="{loc:Loc Rail.AddGame}" />
+                    <Button Classes="ghost" Margin="0,8,0,0"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Command="{Binding ImportFromSteamCommand}"
+                            Content="{loc:Loc Rail.ImportSteam}" />
                 </StackPanel>
 
                 <Border Grid.Row="1" Background="{StaticResource InkBaseBrush}"

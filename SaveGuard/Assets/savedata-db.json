@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "_comment": "Curated map of Steam AppId -> known save location. Paths use placeholders: <winAppData> <winLocalAppData> <winLocalLow> <winDocuments> <winSavedGames> <home> <steamInstall> <steamUserData>. A wrong/stale entry is harmless: if the path doesn't exist the importer just falls back to manual selection.",
+  "games": {
+    "1086940": {
+      "name": "Baldur's Gate 3",
+      "savePaths": [
+        "<winLocalAppData>/Larian Studios/Baldur's Gate 3/PlayerProfiles/Public/Savegames/Story"
+      ],
+      "triggerExtensions": ".lsv",
+      "companionFiles": "<winLocalAppData>/Larian Studios/Baldur's Gate 3/PlayerProfiles/Public/profile8.lsf"
+    },
+    "413150": {
+      "name": "Stardew Valley",
+      "savePaths": ["<winAppData>/StardewValley/Saves"]
+    },
+    "1245620": {
+      "name": "ELDEN RING",
+      "savePaths": ["<winAppData>/EldenRing"],
+      "triggerExtensions": ".sl2,.bak"
+    },
+    "1145360": {
+      "name": "Hades",
+      "savePaths": ["<winDocuments>/Saved Games/Hades"],
+      "triggerExtensions": ".sav"
+    },
+    "1091500": {
+      "name": "Cyberpunk 2077",
+      "savePaths": ["<winSavedGames>/CD Projekt Red/Cyberpunk 2077"],
+      "triggerExtensions": ".dat"
+    },
+    "292030": {
+      "name": "The Witcher 3: Wild Hunt",
+      "savePaths": ["<winDocuments>/The Witcher 3/gamesaves"],
+      "triggerExtensions": ".sav"
+    },
+    "105600": {
+      "name": "Terraria",
+      "savePaths": ["<winDocuments>/My Games/Terraria"],
+      "triggerExtensions": ".plr,.wld"
+    },
+    "367520": {
+      "name": "Hollow Knight",
+      "savePaths": ["<winLocalLow>/Team Cherry/Hollow Knight"],
+      "triggerExtensions": ".dat"
+    },
+    "489830": {
+      "name": "The Elder Scrolls V: Skyrim Special Edition",
+      "savePaths": ["<winDocuments>/My Games/Skyrim Special Edition/Saves"],
+      "triggerExtensions": ".ess"
+    },
+    "377160": {
+      "name": "Fallout 4",
+      "savePaths": ["<winDocuments>/My Games/Fallout4/Saves"],
+      "triggerExtensions": ".fos"
+    },
+    "374320": {
+      "name": "DARK SOULS III",
+      "savePaths": ["<winAppData>/DarkSoulsIII"],
+      "triggerExtensions": ".sl2"
+    },
+    "814380": {
+      "name": "Sekiro: Shadows Die Twice",
+      "savePaths": ["<winAppData>/Sekiro"],
+      "triggerExtensions": ".sl2"
+    },
+    "322330": {
+      "name": "Don't Starve Together",
+      "savePaths": ["<winDocuments>/Klei/DoNotStarveTogether"]
+    },
+    "219990": {
+      "name": "Grim Dawn",
+      "savePaths": ["<winDocuments>/My Games/Grim Dawn/save"]
+    }
+  }
+}
