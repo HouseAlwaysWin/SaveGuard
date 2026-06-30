@@ -3,6 +3,7 @@
   "Rail.AddGame": "+  ゲームを追加",
   "Rail.ImportSteam": "↓  Steam から取り込み",
   "Rail.Language": "言語",
+  "Rail.SearchGames": "ゲームを検索…",
 
   "Header.DeleteGame": "ゲームを削除",
   "Watch.Off": "自動バックアップ オフ",
@@ -108,6 +109,7 @@
   "Settings.ApplyToAll": "すべてのゲームに適用",
   "Settings.ApplyToAllHint": "すべてのゲームを共有フォルダーに切り替えます(各自のパスをクリア)。既存のバックアップはそのまま残ります。",
   "Settings.LanguageSection": "言語",
+  "Settings.LanguageAuto": "システム既定",
   "Settings.Done": "完了",
 
   "Icon.Choose": "アイコンを選択",

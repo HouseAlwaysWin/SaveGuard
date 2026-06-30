@@ -48,7 +48,7 @@
             <StackPanel Spacing="10">
                 <TextBlock Classes="eyebrow" Text="{loc:Loc Settings.LanguageSection}" />
                 <ComboBox HorizontalAlignment="Stretch"
-                          ItemsSource="{Binding AvailableLanguages}"
+                          ItemsSource="{Binding LanguageOptions}"
                           SelectedItem="{Binding SelectedLanguage}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>

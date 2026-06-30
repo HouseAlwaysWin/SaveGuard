@@ -3,6 +3,7 @@
   "Rail.AddGame": "+  Add a game",
   "Rail.ImportSteam": "↓  Import from Steam",
   "Rail.Language": "Language",
+  "Rail.SearchGames": "Search games…",
 
   "Header.DeleteGame": "Delete game",
   "Watch.Off": "Auto-backup off",
@@ -108,6 +109,7 @@
   "Settings.ApplyToAll": "Apply to all games",
   "Settings.ApplyToAllHint": "Switch every game to the shared folder (clears their individual paths). Existing backups stay where they are.",
   "Settings.LanguageSection": "LANGUAGE",
+  "Settings.LanguageAuto": "System default",
   "Settings.Done": "Done",
 
   "Icon.Choose": "Choose icon",
