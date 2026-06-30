@@ -3,6 +3,7 @@
   "Rail.AddGame": "+  新增遊戲",
   "Rail.ImportSteam": "↓  從 Steam 匯入",
   "Rail.Language": "語言",
+  "Rail.SearchGames": "搜尋遊戲…",
 
   "Header.DeleteGame": "刪除遊戲",
   "Watch.Off": "自動備份已關閉",
@@ -108,6 +109,7 @@
   "Settings.ApplyToAll": "套用到所有遊戲",
   "Settings.ApplyToAllHint": "把每個遊戲都改成使用共用資料夾(清空各自的路徑)。既有的備份會留在原地。",
   "Settings.LanguageSection": "語言",
+  "Settings.LanguageAuto": "系統預設",
   "Settings.Done": "完成",
 
   "Icon.Choose": "選擇圖示",

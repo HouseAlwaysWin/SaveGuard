@@ -50,12 +50,14 @@
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                             Command="{Binding ImportFromSteamCommand}"
                             Content="{loc:Loc Rail.ImportSteam}" />
+                    <TextBox Text="{Binding ProfileFilter}" Margin="0,12,0,0"
+                             PlaceholderText="{loc:Loc Rail.SearchGames}" />
                 </StackPanel>
 
                 <Border Grid.Row="1" Background="{StaticResource InkBaseBrush}"
                         BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
                         CornerRadius="8" Padding="4">
-                    <ListBox ItemsSource="{Binding Profiles}"
+                    <ListBox ItemsSource="{Binding FilteredProfiles}"
                              SelectedItem="{Binding SelectedProfile}"
                              Background="Transparent" BorderThickness="0">
                         <ListBox.ItemTemplate>

@@ -73,6 +73,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<GameProfile> Profiles { get; } = new();
     public ObservableCollection<Snapshot> Snapshots { get; } = new();
 
+    /// <summary>The games shown in the rail after the search filter. Profiles is the real
+    /// list; this is a display projection kept in sync with it (and with ProfileFilter).</summary>
+    public ObservableCollection<GameProfile> FilteredProfiles { get; } = new();
+
+    /// <summary>Search text for the game list — matches the game name or its watch path.</summary>
+    [ObservableProperty] private string _profileFilter = "";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasProfile))]
     [NotifyPropertyChangedFor(nameof(WatchStateLabel))]
@@ -204,6 +211,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _saveTimer.Tick += (_, _) => FlushSave();
         Profiles.CollectionChanged += OnProfilesChanged;
         foreach (var p in Profiles) Hook(p);
+
+        RebuildFilter(); // populate the rail's filtered view
 
         // Profiles imported before icons existed have no IconPath — fill it in from
         // Steam now so they show their icon instead of a letter placeholder.
@@ -399,11 +408,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (ShowSettings == null) return;
 
-        var svm = new SettingsViewModel
-        {
-            GlobalBackupRoot = _ui.GlobalBackupRoot,
-            SelectedLanguage = L.AvailableLanguages.FirstOrDefault(l => l.Code == L.CurrentLanguage),
-        };
+        var svm = new SettingsViewModel { GlobalBackupRoot = _ui.GlobalBackupRoot };
+        // Preselect by the *saved* preference: empty = the "System default" (Auto) entry.
+        // Set before subscribing so this initial selection doesn't persist as a user pick.
+        svm.SelectedLanguage = svm.LanguageOptions.FirstOrDefault(o => o.Code == _ui.Language)
+                               ?? svm.LanguageOptions[0];
         svm.LanguageChanged += OnSettingsLanguageChanged;
         svm.ApplyToAllRequested += OnSettingsApplyToAll;
         try { await ShowSettings(svm); }
@@ -417,7 +426,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private void OnSettingsLanguageChanged(string code)
     {
-        L.SetLanguage(code);
+        // "" = follow the OS: persist the empty preference but apply the detected language now.
+        L.SetLanguage(string.IsNullOrEmpty(code) ? DetectSystemLanguage() : code);
         _ui.Language = code;
         SaveUi();
     }
@@ -677,7 +687,35 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (e.OldItems != null) foreach (GameProfile p in e.OldItems) Unhook(p);
         if (e.NewItems != null) foreach (GameProfile p in e.NewItems) Hook(p);
         ScheduleSave(); // the list shape changed → persist
+        RebuildFilter();
     }
+
+    partial void OnProfileFilterChanged(string value) => RebuildFilter();
+
+    /// <summary>Sync FilteredProfiles to the current filter IN PLACE — items that still match
+    /// keep their identity, so the ListBox keeps its selection rather than clearing it.</summary>
+    private void RebuildFilter()
+    {
+        var q = ProfileFilter?.Trim() ?? "";
+        var matches = string.IsNullOrEmpty(q)
+            ? Profiles.ToList()
+            : Profiles.Where(p => ProfileMatches(p, q)).ToList();
+
+        // Drop anything that no longer matches.
+        for (int i = FilteredProfiles.Count - 1; i >= 0; i--)
+            if (!matches.Contains(FilteredProfiles[i]))
+                FilteredProfiles.RemoveAt(i);
+
+        // Insert newly-matching items at their correct position (FilteredProfiles stays a
+        // subsequence of `matches`, so a mismatch at i means matches[i] needs inserting).
+        for (int i = 0; i < matches.Count; i++)
+            if (i >= FilteredProfiles.Count || !ReferenceEquals(FilteredProfiles[i], matches[i]))
+                FilteredProfiles.Insert(i, matches[i]);
+    }
+
+    private static bool ProfileMatches(GameProfile p, string q)
+        => (p.Name?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
+        || (p.WatchPath?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false);
 
     private void Hook(GameProfile p) => p.PropertyChanged += OnProfilePropertyChanged;
     private void Unhook(GameProfile p) => p.PropertyChanged -= OnProfilePropertyChanged;

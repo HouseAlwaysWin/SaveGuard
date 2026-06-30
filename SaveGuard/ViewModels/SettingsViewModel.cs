@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,7 +24,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     public bool HasGlobalRoot => !string.IsNullOrWhiteSpace(GlobalBackupRoot);
 
-    public IReadOnlyList<Localizer.LanguageOption> AvailableLanguages => L.AvailableLanguages;
+    /// <summary>Picker entries: a "follow the OS" auto option (code ""), then each language.</summary>
+    public IReadOnlyList<Localizer.LanguageOption> LanguageOptions { get; } =
+        new[] { new Localizer.LanguageOption("", L["Settings.LanguageAuto"]) }
+            .Concat(L.AvailableLanguages).ToList();
 
     [ObservableProperty] private Localizer.LanguageOption? _selectedLanguage;
 

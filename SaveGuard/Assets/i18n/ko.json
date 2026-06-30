@@ -3,6 +3,7 @@
   "Rail.AddGame": "+  게임 추가",
   "Rail.ImportSteam": "↓  Steam에서 가져오기",
   "Rail.Language": "언어",
+  "Rail.SearchGames": "게임 검색…",
 
   "Header.DeleteGame": "게임 삭제",
   "Watch.Off": "자동 백업 꺼짐",
@@ -108,6 +109,7 @@
   "Settings.ApplyToAll": "모든 게임에 적용",
   "Settings.ApplyToAllHint": "모든 게임을 공용 폴더로 전환합니다(각자의 경로를 지움). 기존 백업은 그대로 유지됩니다.",
   "Settings.LanguageSection": "언어",
+  "Settings.LanguageAuto": "시스템 기본값",
   "Settings.Done": "완료",
 
   "Icon.Choose": "아이콘 선택",
