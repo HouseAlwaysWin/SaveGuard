@@ -60,6 +60,8 @@
         </StackPanel>
 
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,18,0,0">
+            <TextBlock Grid.Column="0" Classes="field" VerticalAlignment="Center"
+                       Text="{Binding VersionText}" />
             <Button Grid.Column="1" Classes="primary" Content="{loc:Loc Settings.Done}"
                     Command="{Binding CloseCommand}" />
         </Grid>
