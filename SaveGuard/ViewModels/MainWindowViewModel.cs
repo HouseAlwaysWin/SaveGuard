@@ -300,6 +300,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private void RefreshPreview()
     {
+        // No backups → nothing to preview. Clear it rather than falling back to the live
+        // save folder, otherwise deleting every backup would still show the game's current
+        // screenshot (e.g. BG3's HonourMode.WebP) as a phantom preview.
+        if (Snapshots.Count == 0) { SetPreview(null); return; }
+
         string? folder = SelectedSnapshot?.FolderPath;
         if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
             folder = SelectedProfile?.WatchPath;
