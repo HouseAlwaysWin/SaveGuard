@@ -46,7 +46,15 @@ public partial class App : Application
                 {
                     e.Cancel = true;
                     window.Hide();
+                    MemoryTrimmer.Trim(); // idle in the tray — release the working set
                 }
+            };
+
+            // Minimizing to the taskbar is the other idle state — trim there too.
+            window.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == Window.WindowStateProperty && window.WindowState == WindowState.Minimized)
+                    MemoryTrimmer.Trim();
             };
 
             _trayIcon = BuildTrayIcon(window, desktop, watcher);
