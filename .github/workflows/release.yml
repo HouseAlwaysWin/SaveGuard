@@ -33,8 +33,11 @@ jobs:
           -o publish
           /p:Version=${{ steps.ver.outputs.version }}
 
-      - name: Install Velopack CLI
-        run: dotnet tool install -g vpk
+      # The vpk CLI version MUST match the Velopack package version referenced in
+      # SaveGuard.csproj, or the produced Setup.exe won't match the app's runtime and
+      # the install/first-run will error. Keep this in sync with that <PackageReference>.
+      - name: Install Velopack CLI (pinned to the library version)
+        run: dotnet tool install -g vpk --version 1.2.0
 
       - name: Package
         run: >

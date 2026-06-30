@@ -29,6 +29,17 @@ Either way, pushing the tag triggers `.github/workflows/release.yml`, which:
 Version = the tag without the leading `v` (so `v1.0.1` → `1.0.1`). Use SemVer and
 always bump upward — Velopack compares versions to decide whether to update.
 
+### What's in a Release
+
+Each Release carries several assets — this is normal Velopack output, not a NuGet
+publish (nothing is pushed to nuget.org):
+
+- **`SaveGuard-win-Setup.exe`** — the installer. **This is the only thing end users need.**
+- `SaveGuard-<ver>-full.nupkg` — Velopack's *update package* (its on-disk format is
+  nupkg-based). The in-app updater downloads this to update; users never touch it.
+- `releases.win.json` / `RELEASES` — the update manifest the app reads to find new versions.
+- `SaveGuard-win-Portable.zip` — an optional no-install portable build.
+
 ## How users get it
 
 - **First install:** download `Setup.exe` from the latest
@@ -43,7 +54,8 @@ always bump upward — Velopack compares versions to decide whether to update.
 
 ```powershell
 dotnet publish SaveGuard/SaveGuard.csproj -c Release -r win-x64 --self-contained true -o publish /p:Version=1.0.1
-dotnet tool install -g vpk
+# vpk version MUST match the Velopack <PackageReference> in SaveGuard.csproj (currently 1.2.0).
+dotnet tool install -g vpk --version 1.2.0
 vpk pack --packId SaveGuard --packTitle SaveGuard --packVersion 1.0.1 --packDir publish --mainExe SaveGuard.exe --icon SaveGuard/Assets/saveguard.ico
 # Outputs Setup.exe under .\Releases — run it to install, then bump the version and repeat to see an update.
 ```
