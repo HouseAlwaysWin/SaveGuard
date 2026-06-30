@@ -591,8 +591,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (SelectedProfile == null || SelectedSnapshot == null) return;
 
-        var ok = Confirm == null || await Confirm(L["Dialog.Restore.Title"],
-            L.Format("Dialog.Restore.Body", SelectedSnapshot.TakenAtDisplay));
+        // A running game holds its saves in memory and overwrites a restore when it
+        // exits, so warn first if Steam reports this profile's game as running.
+        var running = GameRunningDetector.IsSteamGameRunning(SelectedProfile.SteamAppId);
+        var body = running
+            ? L.Format("Dialog.Restore.RunningBody", SelectedProfile.Name, SelectedSnapshot.TakenAtDisplay)
+            : L.Format("Dialog.Restore.Body", SelectedSnapshot.TakenAtDisplay);
+        var ok = Confirm == null || await Confirm(L["Dialog.Restore.Title"], body);
         if (!ok) return;
 
         Busy = true;
