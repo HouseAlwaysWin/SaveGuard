@@ -58,7 +58,7 @@ public sealed class ProfileStore
     private List<GameProfile> Seed()
     {
         var list = new List<GameProfile>();
-        var (story, profileFlag) = TryBg3Paths();
+        var (story, companions) = TryBg3Paths();
         if (story != null)
         {
             list.Add(new GameProfile
@@ -68,9 +68,9 @@ public sealed class ProfileStore
                 BackupRoot = DefaultBackupRoot,
                 Recursive = true,
                 TriggerExtensions = ".lsv",
-                // Honour mode's run-failed flag lives in profile8.lsf, outside the
+                // The Honour-mode failure flag lives in the profile metadata outside the
                 // save folder — capture it so a restore actually clears a team-wipe.
-                CompanionFiles = profileFlag ?? "",
+                CompanionFiles = companions ?? "",
                 MaxSnapshots = 25,
                 AutoWatch = true,
                 DebounceMs = 2500,
@@ -83,17 +83,35 @@ public sealed class ProfileStore
     /// BG3 saves live under LOCALAPPDATA on Windows. The profile id between
     /// PlayerProfiles and Savegames varies, so we land on PlayerProfiles\Public
     /// when present, else the Larian folder — the user can refine it. Also returns
-    /// the Public\profile8.lsf path (the Honour-mode failure flag) when found.
+    /// the companion-file lines (the Honour-mode profile metadata, outside the save
+    /// folder) when found.
     /// </summary>
-    private static (string? story, string? profileFlag) TryBg3Paths()
+    private static (string? story, string? companions) TryBg3Paths()
     {
         if (!OperatingSystem.IsWindows()) return (null, null);
 
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var publicDir = Path.Combine(local, "Larian Studios", "Baldur's Gate 3", "PlayerProfiles", "Public");
+        var profilesDir = Path.Combine(local, "Larian Studios", "Baldur's Gate 3", "PlayerProfiles");
+        var publicDir = Path.Combine(profilesDir, "Public");
         var story = Path.Combine(publicDir, "Savegames", "Story");
         if (Directory.Exists(story))
-            return (story, Path.Combine(publicDir, "profile8.lsf"));
+        {
+            // Honour-mode "run failed → Custom" state lives in the profile metadata,
+            // OUTSIDE the save folder — restoring the Story save alone never clears a
+            // team-wipe. It's spread across several .lsf/.lsx files in PlayerProfiles
+            // and Public (config.lsf, profile8.lsf, playerprofiles8.lsf, …), so capture
+            // ALL of them with wildcards — but NOT the huge Savegames folder (the
+            // single-level "*" patterns don't recurse into it, and Story is already the
+            // watched folder).
+            var companions = string.Join("\n", new[]
+            {
+                Path.Combine(profilesDir, "*.lsf"),
+                Path.Combine(profilesDir, "*.lsx"),
+                Path.Combine(publicDir, "*.lsf"),
+                Path.Combine(publicDir, "*.lsx"),
+            });
+            return (story, companions);
+        }
 
         var larian = Path.Combine(local, "Larian Studios", "Baldur's Gate 3");
         return (Directory.Exists(larian) ? larian : null, null);
