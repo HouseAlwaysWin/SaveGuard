@@ -269,6 +269,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private void OnAutoBackupCompleted(GameProfile p, Snapshot? snap, Exception? err)
     {
+        MemoryTrimmer.Trim(); // a background backup just finished — release the working set
+
         // Marshal to the UI thread.
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
@@ -588,7 +590,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             SetStatus("Status.BackupFailed", ex.Message);
         }
-        finally { Busy = false; }
+        finally { Busy = false; MemoryTrimmer.Trim(); }
     }
 
     [RelayCommand]
@@ -629,7 +631,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             SetStatus("Status.RestoreFailed", ex.Message);
         }
-        finally { Busy = false; }
+        finally { Busy = false; MemoryTrimmer.Trim(); }
     }
 
     /// <summary>Deletes every selected snapshot (the list comes from the multi-select
