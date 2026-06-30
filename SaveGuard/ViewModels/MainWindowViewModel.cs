@@ -143,6 +143,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         var c = System.Globalization.CultureInfo.CurrentUICulture;
         var name = c.Name; // e.g. zh-TW, zh-CN, ja-JP
         if (name.StartsWith("ja", StringComparison.OrdinalIgnoreCase)) return "ja";
+        if (name.StartsWith("ko", StringComparison.OrdinalIgnoreCase)) return "ko";
         if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
         {
             // Traditional for TW/HK/MO/Hant, Simplified otherwise.

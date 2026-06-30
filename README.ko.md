@@ -1,0 +1,65 @@
+<p align="center">
+  <img src="SaveGuard/Assets/saveguard.png" width="96" alt="SaveGuard" />
+</p>
+
+<h1 align="center">SaveGuard</h1>
+
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README.zh-Hant.md">繁體中文</a> ·
+  <a href="README.zh-Hans.md">简体中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <b>한국어</b>
+</p>
+
+모든 게임 세이브를 위한 버전 관리 백업 도구. SaveGuard는 게임의 세이브 폴더를 감시하다가 게임이 저장할 때마다 **폴더 전체**를 타임스탬프가 붙은 사본으로 스냅샷합니다 — 그래서 언제든 이전 세이브로 한 번에 되돌릴 수 있습니다. 발더스 게이트 3 아너 모드(되돌리기 불가, 세이브가 그 자리에서 덮어쓰기됨)와 같은 상황을 위해 만들었지만, 어떤 게임에서도 동작합니다.
+
+## 기능
+
+- 저장할 때마다 **자동 스냅샷**(디바운스 적용), 보관 개수 설정 가능.
+- **원클릭 복원** — 복원 전에 먼저 `pre-restore` 안전 스냅샷을 찍으므로, 잘못된 복원조차 되돌릴 수 있습니다.
+- **폴더 전체 스냅샷** — 세이브는 여러 파일로 이루어진 경우가 많아(BG3의 `meta.lsf`는 `.lsv`와 짝이어야 함), 폴더 전체를 복사해 정합성을 유지합니다.
+- **Steam에서 가져오기** — 설치된 Steam 게임을 스캔해 각 게임의 세이브 폴더를 자동 감지합니다(내장 데이터베이스, Steam 클라우드, 이름 매칭). 찾지 못한 것은 수동 선택으로 넘어갑니다.
+- **세이브 미리보기** — 각 백업 옆에 게임 내 스크린샷을 표시합니다(이미지 형식 설정 가능).
+- **트레이 상주** — 창을 닫으면 시스템 트레이로 숨겨지고, 감시는 백그라운드에서 계속됩니다.
+- **자동 업데이트** — 설치된 빌드는 GitHub Releases에서 스스로 업데이트합니다.
+- **5개 언어** — English, 繁體中文, 简体中文, 日本語, 한국어 — 실시간 전환.
+
+## 설치
+
+[Releases](https://github.com/HouseAlwaysWin/SaveGuard/releases)에서 최신 `Setup.exe`를 내려받아 실행하세요. 이후에는 앱이 자동으로 업데이트됩니다.
+
+> 첫 실행 시 발더스 게이트 3 세이브 폴더가 감지되면 BG3 프로필이 자동으로 생성됩니다(`.lsv` 필터, 25개 보관, 자동 감시). **Save folder**를 올바른 위치로 지정하고 **Back up now**를 한 번 눌러 백업 목록이 채워지는지 확인하세요.
+
+다른 게임은 **+ 게임 추가**로 추가하고 해당 게임의 세이브 폴더를 지정하세요. 흔한 위치:
+
+- `Documents\My Games\<게임>`
+- `%LOCALAPPDATA%\<게임>` 또는 `%APPDATA%\<게임>`
+- Steam 클라우드 동기화: `Steam\userdata\<id>\<appid>\remote`
+
+**이 형식에서만 트리거**를 비워 두면 모든 변경에 반응합니다(잘 모르겠으면 비워 두세요).
+
+또는 사이드바의 **↓ Steam에서 가져오기**를 클릭하세요: SaveGuard가 설치된 Steam 게임을 스캔해 내장 데이터베이스, Steam 클라우드 폴더, 또는 이름 매칭으로 각 게임의 세이브 폴더를 미리 채웁니다. 보호할 게임에 체크만 하면 됩니다 — 찾지 못한 것은 비어 있는 채로 두어 직접 선택할 수 있습니다.
+
+## 동작 방식
+
+- 각 백업은 세이브 폴더를 `BackupRoot/<게임>/<타임스탬프>/`로 **완전히 복사**한 것입니다 — 파일 단위 차분은 만들지 않습니다. 세이브는 한 묶음으로 함께 복원해야만 올바르게 동작하기 때문입니다.
+- **백업 엔진은 UI에 의존하지 않습니다**(`Services/BackupEngine.cs`): 순수 .NET 파일 IO, 크로스 플랫폼, 단위 테스트 가능.
+- 설정은 `%APPDATA%\SaveGuard\profiles.json`에 저장되고, 백업의 기본 위치는 `%APPDATA%\SaveGuard\Backups`입니다.
+- 처리된 엣지 케이스: 쓰기 진행 중과 이벤트 폭주(디바운스), 게임이 아직 잡고 있는 파일(공유 읽기 복사, 정말로 잠긴 것만 건너뜀), 백업의 백업이라는 무한 재귀(`ValidateProfile`가 차단), 복원 중의 불필요한 백업(감시 일시 중지), 그리고 실제 백업보다 `pre-restore` 안전 사본을 먼저 비우는 회전 방식.
+
+## 소스에서 빌드
+
+[.NET 10 SDK](https://dotnet.microsoft.com/download)가 필요합니다.
+
+```bash
+dotnet run --project SaveGuard
+```
+
+## 릴리스
+
+`v*` 태그를 push하면 GitHub Actions가 빌드, 패키징(Velopack), GitHub Release 게시를 수행하고, 설치된 앱이 자동으로 업데이트됩니다. [RELEASING.md](RELEASING.md)를 참고하세요.
+
+## 라이선스
+
+[MIT](LICENSE) © 2026 Martin Wang

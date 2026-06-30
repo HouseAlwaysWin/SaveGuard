@@ -8,7 +8,8 @@
   <b>English</b> ·
   <a href="README.zh-Hant.md">繁體中文</a> ·
   <a href="README.zh-Hans.md">简体中文</a> ·
-  <a href="README.ja.md">日本語</a>
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a>
 </p>
 
 Versioned backups for any game's saves. SaveGuard watches a game's save folder and, every time the game saves, snapshots the **whole folder** into a timestamped copy — so you can roll back to any earlier save in one click. Built for situations like Baldur's Gate 3 Honour Mode (no second chances, saves overwritten in place), but it works for any game.
@@ -18,10 +19,11 @@ Versioned backups for any game's saves. SaveGuard watches a game's save folder a
 - **Automatic snapshots** on every save (debounced), with configurable retention.
 - **One-click restore** — and a `pre-restore` safety snapshot is taken first, so even a wrong restore is undoable.
 - **Whole-folder snapshots** — saves are often multi-file (BG3's `meta.lsf` must match its `.lsv`); copying the whole folder keeps them consistent.
+- **Import from Steam** — scan your installed Steam games and auto-detect each one's save folder (built-in database, Steam Cloud, or name match); anything it can't find falls back to manual selection.
 - **Save preview** — shows the in-game screenshot next to each backup (configurable image types).
 - **Runs in the tray** — closing the window hides it to the system tray, so watching keeps running in the background.
 - **Auto-update** — installed builds update themselves from GitHub Releases.
-- **4 languages** — English, 繁體中文, 简体中文, 日本語 — switchable live.
+- **5 languages** — English, 繁體中文, 简体中文, 日本語, 한국어 — switchable live.
 
 ## Install
 
@@ -36,6 +38,8 @@ Add other games with **+ Add a game** and point it at that game's save folder. C
 - Steam cloud sync: `Steam\userdata\<id>\<appid>\remote`
 
 Leave **Only trigger on these types** blank to react to any change (when unsure, leave it blank).
+
+Or click **↓ Import from Steam** in the sidebar: SaveGuard scans your installed Steam games and pre-fills each one's save folder from a built-in database, your Steam Cloud folder, or a name match. Tick the games to protect — anything it couldn't locate is left blank for you to pick manually.
 
 ## How it works
 

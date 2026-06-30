@@ -24,6 +24,7 @@ public sealed class Localizer
         new LanguageOption("zh-Hant", "繁體中文"),
         new LanguageOption("zh-Hans", "简体中文"),
         new LanguageOption("ja", "日本語"),
+        new LanguageOption("ko", "한국어"),
     };
 
     private readonly Dictionary<string, Dictionary<string, string>> _all = new();
