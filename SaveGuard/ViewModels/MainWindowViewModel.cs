@@ -203,8 +203,29 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         Profiles.CollectionChanged += OnProfilesChanged;
         foreach (var p in Profiles) Hook(p);
 
+        // Profiles imported before icons existed have no IconPath — fill it in from
+        // Steam now so they show their icon instead of a letter placeholder.
+        BackfillSteamIcons();
+
         // Check GitHub Releases for a newer version in the background (no-op in dev).
         _ = CheckForUpdatesAsync();
+    }
+
+    private void BackfillSteamIcons()
+    {
+        var needIcon = Profiles
+            .Where(p => p.SteamAppId != 0 && string.IsNullOrEmpty(p.IconPath))
+            .ToList();
+        if (needIcon.Count == 0) return;
+
+        var root = _scanner.FindSteamRoot();
+        if (root == null) return;
+
+        foreach (var p in needIcon)
+        {
+            var icon = _scanner.FindGameIcon(root, p.SteamAppId);
+            if (icon != null) p.IconPath = icon; // change persists via the debounced auto-save
+        }
     }
 
     private async Task CheckForUpdatesAsync()
