@@ -1,7 +1,89 @@
 {
+  // Curated map of Steam AppId -> known save location.
+  // Path placeholders: <winAppData> <winLocalAppData> <winLocalLow> <winDocuments>
+  // <winSavedGames> <home> <steamInstall> <steamUserData>.
+  // A wrong/stale entry is harmless: if the path doesn't exist the importer just
+  // falls back to manual selection. Comments are allowed (loader skips them).
   "version": 1,
-  "_comment": "Curated map of Steam AppId -> known save location. Paths use placeholders: <winAppData> <winLocalAppData> <winLocalLow> <winDocuments> <winSavedGames> <home> <steamInstall> <steamUserData>. A wrong/stale entry is harmless: if the path doesn't exist the importer just falls back to manual selection.",
   "games": {
+
+    // =====================================================================
+    // Installed on this machine (save paths verified on disk, 2026-06-30)
+    // =====================================================================
+
+    "1904480": {
+      "name": "Absolum",
+      "savePaths": ["<winLocalAppData>/Absolum_SaveGame_Steam"],
+      "triggerExtensions": ".bin"
+    },
+    "1449200": {
+      "name": "AI: THE SOMNIUM FILES - nirvanA Initiative",
+      "savePaths": ["<winLocalAppData>/SpikeChunsoft/AI Nirvana Initiative"],
+      "triggerExtensions": ".dat"
+    },
+    "2187220": {
+      "name": "Apollo Justice: Ace Attorney Trilogy",
+      "savePaths": ["<steamUserData>/2187220/remote"],
+      "triggerExtensions": ".bin"
+    },
+    "346010": {
+      "name": "Besiege",
+      "savePaths": ["<steamUserData>/346010/remote"],
+      "triggerExtensions": ".txt"
+    },
+    "774361": {
+      "name": "Blasphemous",
+      "savePaths": ["<winLocalLow>/TheGameKitchen/Blasphemous/Savegames"]
+    },
+    "268910": {
+      "name": "Cuphead",
+      "savePaths": ["<winAppData>/Cuphead"],
+      "triggerExtensions": ".sav"
+    },
+    "3167020": {
+      "name": "Escape from Duckov",
+      "savePaths": ["<winLocalLow>/TeamSoda/Duckov/Saves"],
+      "triggerExtensions": ".sav"
+    },
+    "1145360": {
+      "name": "Hades",
+      "savePaths": ["<winDocuments>/Saved Games/Hades"],
+      "triggerExtensions": ".sav"
+    },
+    "1971650": {
+      "name": "OCTOPATH TRAVELER II",
+      "savePaths": ["<winDocuments>/My Games/Octopath_Traveler2"],
+      "triggerExtensions": ".sav"
+    },
+    "457140": {
+      "name": "Oxygen Not Included",
+      "savePaths": ["<winDocuments>/Klei/OxygenNotIncluded"],
+      "triggerExtensions": ".sav"
+    },
+    "1147560": {
+      "name": "Skul: The Hero Slayer",
+      "savePaths": ["<winLocalLow>/Southpaw Games/Skul"],
+      "triggerExtensions": ".dat"
+    },
+    "1158850": {
+      "name": "The Great Ace Attorney Chronicles",
+      "savePaths": ["<steamUserData>/1158850/remote"],
+      "triggerExtensions": ".dat"
+    },
+    "2258770": {
+      "name": "The Shell Part I: Inferno",
+      "savePaths": ["<steamInstall>/savedata"]
+    },
+    "1876890": {
+      "name": "Wandering Sword",
+      "savePaths": ["<winLocalAppData>/Wandering_Sword/Saved"],
+      "triggerExtensions": ".sav"
+    },
+
+    // =====================================================================
+    // Other popular titles (community-sourced paths; not installed here)
+    // =====================================================================
+
     "1086940": {
       "name": "Baldur's Gate 3",
       "savePaths": [
@@ -18,11 +100,6 @@
       "name": "ELDEN RING",
       "savePaths": ["<winAppData>/EldenRing"],
       "triggerExtensions": ".sl2,.bak"
-    },
-    "1145360": {
-      "name": "Hades",
-      "savePaths": ["<winDocuments>/Saved Games/Hades"],
-      "triggerExtensions": ".sav"
     },
     "1091500": {
       "name": "Cyberpunk 2077",
