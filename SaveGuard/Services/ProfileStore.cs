@@ -96,20 +96,13 @@ public sealed class ProfileStore
         var story = Path.Combine(publicDir, "Savegames", "Story");
         if (Directory.Exists(story))
         {
-            // Honour-mode "run failed → Custom" state lives in the profile metadata,
-            // OUTSIDE the save folder — restoring the Story save alone never clears a
-            // team-wipe. It's spread across several .lsf/.lsx files in PlayerProfiles
-            // and Public (config.lsf, profile8.lsf, playerprofiles8.lsf, …), so capture
-            // ALL of them with wildcards — but NOT the huge Savegames folder (the
-            // single-level "*" patterns don't recurse into it, and Story is already the
-            // watched folder).
-            var companions = string.Join("\n", new[]
-            {
-                Path.Combine(profilesDir, "*.lsf"),
-                Path.Combine(profilesDir, "*.lsx"),
-                Path.Combine(publicDir, "*.lsf"),
-                Path.Combine(publicDir, "*.lsx"),
-            });
+            // The Honour-mode "run failed → Custom" flag lives in profile8.lsf, OUTSIDE
+            // the save folder, so restoring the Story save alone won't clear a team-wipe.
+            // Testing confirmed profile8.lsf is the ONLY companion that matters — the
+            // other .lsf/.lsx files are just config / UI / analytics. NOTE: a restore
+            // only sticks if the game is fully closed first, then reopened — a running
+            // BG3 holds the profile in memory and overwrites it on exit.
+            var companions = Path.Combine(publicDir, "profile8.lsf");
             return (story, companions);
         }
 
