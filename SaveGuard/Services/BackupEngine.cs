@@ -366,7 +366,8 @@ public sealed class BackupEngine
 
         foreach (var e in entries)
         {
-            if (string.IsNullOrWhiteSpace(e.Stored) || string.IsNullOrWhiteSpace(e.Original)) continue;
+            // e can be null if a manifest was hand-edited to contain a JSON `null`.
+            if (e is null || string.IsNullOrWhiteSpace(e.Stored) || string.IsNullOrWhiteSpace(e.Original)) continue;
             var stored = Path.Combine(snapshotDir, CompanionDir, e.Stored);
             if (!File.Exists(stored)) continue;
             try
