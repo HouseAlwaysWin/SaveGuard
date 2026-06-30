@@ -323,9 +323,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             try
             {
-                // Decode fully into memory so we don't keep a handle on the file.
+                // The preview shows in a fixed ~200 px box, so decode at 600 px (sharp even
+                // at high DPI) instead of the source resolution — a 4K save screenshot would
+                // otherwise sit in RAM at ~30 MB just to render a thumbnail. Decoding from a
+                // stream also avoids keeping a handle on the file.
                 using var fs = File.OpenRead(path);
-                next = new Bitmap(fs);
+                next = Bitmap.DecodeToWidth(fs, 600);
             }
             catch { next = null; }
         }

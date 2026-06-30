@@ -23,7 +23,16 @@ public sealed class PathToBitmapConverter : IValueConverter
         if (Cache.TryGetValue(path, out var cached)) return cached;
 
         Bitmap? bmp = null;
-        try { if (File.Exists(path)) bmp = new Bitmap(path); }
+        try
+        {
+            // Icons show at 30–44 px; decode at 160 px (sharp even at high DPI) rather than
+            // the source resolution, so a 256/512 px Steam icon isn't held full-size in RAM.
+            if (File.Exists(path))
+            {
+                using var fs = File.OpenRead(path);
+                bmp = Bitmap.DecodeToWidth(fs, 160);
+            }
+        }
         catch { bmp = null; }
         Cache[path] = bmp;
         return bmp;
