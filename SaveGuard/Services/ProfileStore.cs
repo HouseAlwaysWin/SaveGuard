@@ -97,13 +97,18 @@ public sealed class ProfileStore
         if (Directory.Exists(story))
         {
             // Honour-mode "run failed → Custom" state lives in the profile metadata,
-            // OUTSIDE the save folder, so restoring the Story save alone never clears a
-            // team-wipe. The PlayerProfiles-level playerprofiles8.lsf is the file that
-            // flips on a wipe; the Public-level profile8.lsf is included for safety.
+            // OUTSIDE the save folder — restoring the Story save alone never clears a
+            // team-wipe. It's spread across several .lsf/.lsx files in PlayerProfiles
+            // and Public (config.lsf, profile8.lsf, playerprofiles8.lsf, …), so capture
+            // ALL of them with wildcards — but NOT the huge Savegames folder (the
+            // single-level "*" patterns don't recurse into it, and Story is already the
+            // watched folder).
             var companions = string.Join("\n", new[]
             {
-                Path.Combine(profilesDir, "playerprofiles8.lsf"),
-                Path.Combine(publicDir, "profile8.lsf"),
+                Path.Combine(profilesDir, "*.lsf"),
+                Path.Combine(profilesDir, "*.lsx"),
+                Path.Combine(publicDir, "*.lsf"),
+                Path.Combine(publicDir, "*.lsx"),
             });
             return (story, companions);
         }
