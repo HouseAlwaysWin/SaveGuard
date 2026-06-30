@@ -29,6 +29,12 @@
   "How.CompanionWatermark": "e.g. C:\\…\\PlayerProfiles\\Public\\profile8.lsf   (one path per line)",
   "How.CompanionHint": "Captured with every snapshot and restored to their original location. Absolute paths, or use ** for a recursive wildcard.",
 
+  "How.AddFile": "Browse & add…",
+  "How.ExcludeLabel": "Exclude these from backups (inside the save folder)",
+  "How.ExcludeWatermark": "e.g. *.log   or   cache/**   (one pattern per line)",
+  "How.ExcludeHint": "Matched files are never copied into a snapshot, and a restore leaves them untouched. No \"/\" matches a file or folder name at any depth; with \"/\" it's relative to the save folder and ** spans subfolders.",
+  "Picker.AddFileTitle": "Choose a file to add",
+
   "Section.Backups": "BACKUPS",
   "Backups.Refresh": "Refresh",
   "Backups.OpenFolder": "Open folder",
@@ -80,6 +86,7 @@
   "Dialog.Restore.Body": "Replace the current save folder with the backup from\n{0}?\n\nYour current saves will be snapshotted first (labelled \"pre-restore\"), so this can be undone.",
   "Dialog.DeleteBackup.Title": "Delete backup",
   "Dialog.DeleteBackup.Body": "Permanently delete the backup from {0}?",
+  "Dialog.DeleteBackups.Body": "Permanently delete {0} selected backups?",
   "Dialog.Confirm": "Confirm",
   "Dialog.Cancel": "Cancel",
 

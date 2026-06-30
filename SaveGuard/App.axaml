@@ -118,7 +118,8 @@
             <Setter Property="Background" Value="Transparent" />
         </Style>
 
-        <!-- Tiny round "clear" badge overlaid on the avatar's corner. -->
+        <!-- Tiny round "clear" badge overlaid on the avatar's corner. Hidden until the
+             pointer is over the icon cell (see the Grid.iconcell rules below). -->
         <Style Selector="Button.badge">
             <Setter Property="Width" Value="18" />
             <Setter Property="Height" Value="18" />
@@ -133,9 +134,23 @@
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Margin" Value="0,-6,-6,0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.badge:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        </Style>
+        <!-- Reveal the clear badge only while hovering the icon. -->
+        <Style Selector="Grid.iconcell Button.badge">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+        <Style Selector="Grid.iconcell:pointerover Button.badge">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="IsHitTestVisible" Value="True" />
         </Style>
     </Application.Styles>
 

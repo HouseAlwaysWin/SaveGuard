@@ -39,7 +39,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         nameof(GameProfile.WatchPath), nameof(GameProfile.Recursive),
         nameof(GameProfile.TriggerExtensions), nameof(GameProfile.DebounceMs),
-        nameof(GameProfile.AutoWatch),
+        nameof(GameProfile.AutoWatch), nameof(GameProfile.ExcludePatterns),
     };
 
     /// <summary>Fields that change which snapshots are listed or which image previews —
@@ -62,6 +62,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>Set by the View. Opens an image file picker, returns the chosen path or null.</summary>
     public Func<Task<string?>>? PickImage { get; set; }
+
+    /// <summary>Set by the View. Opens a file picker (any type) starting at the given
+    /// directory, and returns the chosen path or null.</summary>
+    public Func<string, string?, Task<string?>>? PickFile { get; set; }
 
     public ObservableCollection<GameProfile> Profiles { get; } = new();
     public ObservableCollection<Snapshot> Snapshots { get; } = new();
@@ -426,6 +430,61 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (SelectedProfile != null) SelectedProfile.IconPath = "";
     }
 
+    [RelayCommand]
+    private async Task AddCompanionFile()
+    {
+        if (SelectedProfile == null || PickFile == null) return;
+        var path = await PickFile(L["Picker.AddFileTitle"], SelectedProfile.WatchPath);
+        if (path == null) return;
+        // Companion files can live anywhere — store the absolute path.
+        SelectedProfile.CompanionFiles = AppendLine(SelectedProfile.CompanionFiles, path);
+    }
+
+    [RelayCommand]
+    private async Task AddExcludeFile()
+    {
+        if (SelectedProfile == null || PickFile == null) return;
+        var path = await PickFile(L["Picker.AddFileTitle"], SelectedProfile.WatchPath);
+        if (path == null) return;
+        // Excludes are relative to the watch folder — store a portable pattern.
+        SelectedProfile.ExcludePatterns =
+            AppendLine(SelectedProfile.ExcludePatterns, ToExcludePattern(SelectedProfile.WatchPath, path));
+    }
+
+    /// <summary>A picked file becomes a path relative to the watch folder when it sits
+    /// inside it, otherwise just its file name.</summary>
+    private static string ToExcludePattern(string watchPath, string picked)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(watchPath))
+            {
+                var root = Path.GetFullPath(watchPath);
+                var full = Path.GetFullPath(picked);
+                var prefix = root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                var cmp = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+                if (full.StartsWith(prefix, cmp))
+                    return Path.GetRelativePath(root, full).Replace('\\', '/');
+            }
+        }
+        catch { /* fall back to the file name */ }
+        return Path.GetFileName(picked);
+    }
+
+    /// <summary>Appends a trimmed line to a multi-line field, skipping blanks and dupes.</summary>
+    private static string AppendLine(string existing, string line)
+    {
+        var cmp = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var lines = new List<string>();
+        foreach (var l in existing.Replace("\r\n", "\n").Split('\n'))
+        {
+            var t = l.Trim();
+            if (t.Length > 0) lines.Add(t);
+        }
+        if (!lines.Contains(line, cmp)) lines.Add(line);
+        return string.Join("\n", lines);
+    }
+
     // ---------- backup / restore commands ----------
 
     [RelayCommand]
@@ -480,24 +539,31 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         finally { Busy = false; }
     }
 
+    /// <summary>Deletes every selected snapshot (the list comes from the multi-select
+    /// ListBox); falls back to the single selected one if nothing was passed.</summary>
     [RelayCommand]
-    private async Task DeleteSnapshot()
+    private async Task DeleteSnapshots(System.Collections.IList? selected)
     {
-        if (SelectedSnapshot == null) return;
+        var snaps = selected?.Cast<Snapshot>().ToList() ?? new List<Snapshot>();
+        if (snaps.Count == 0 && SelectedSnapshot != null) snaps.Add(SelectedSnapshot);
+        if (snaps.Count == 0) return;
+
         var ok = Confirm == null || await Confirm(L["Dialog.DeleteBackup.Title"],
-            L.Format("Dialog.DeleteBackup.Body", SelectedSnapshot.TakenAtDisplay));
+            snaps.Count == 1
+                ? L.Format("Dialog.DeleteBackup.Body", snaps[0].TakenAtDisplay)
+                : L.Format("Dialog.DeleteBackups.Body", snaps.Count));
         if (!ok) return;
 
-        try
+        int failed = 0;
+        foreach (var s in snaps)
         {
-            _engine.DeleteSnapshot(SelectedSnapshot);
-            RefreshSnapshots();
-            SetStatus("Status.BackupDeleted");
+            try { _engine.DeleteSnapshot(s); }
+            catch { failed++; }
         }
-        catch (Exception ex)
-        {
-            SetStatus("Status.DeleteFailed", ex.Message);
-        }
+
+        RefreshSnapshots();
+        if (failed > 0) SetStatus("Status.DeleteFailed", failed.ToString());
+        else SetStatus("Status.BackupDeleted");
     }
 
     /// <summary>Re-scan the backup folder and reload the snapshots list.</summary>

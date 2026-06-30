@@ -29,6 +29,12 @@
   "How.CompanionWatermark": "예: C:\\…\\PlayerProfiles\\Public\\profile8.lsf   (한 줄에 경로 하나)",
   "How.CompanionHint": "스냅샷마다 함께 캡처하고 복원 시 원래 위치로 되돌립니다. 절대 경로, 또는 재귀 와일드카드는 ** 를 사용하세요.",
 
+  "How.AddFile": "찾아보기 & 추가…",
+  "How.ExcludeLabel": "백업에서 제외할 파일 (세이브 폴더 내)",
+  "How.ExcludeWatermark": "예: *.log　또는　cache/**　(한 줄에 하나)",
+  "How.ExcludeHint": "일치하는 파일은 스냅샷에 포함되지 않으며, 복원 시에도 그대로 둡니다. \"/\"가 없으면 모든 깊이의 파일/폴더 이름과 일치하고, \"/\"가 있으면 세이브 폴더 기준 상대 경로이며 ** 는 하위 폴더를 가로지릅니다.",
+  "Picker.AddFileTitle": "추가할 파일 선택",
+
   "Section.Backups": "백업",
   "Backups.Refresh": "새로 고침",
   "Backups.OpenFolder": "폴더 열기",
@@ -80,6 +86,7 @@
   "Dialog.Restore.Body": "현재 세이브 폴더를 다음 백업으로 교체할까요?\n{0}\n\n현재 세이브는 먼저 스냅샷(\"pre-restore\"로 표시)으로 저장되므로 되돌릴 수 있습니다.",
   "Dialog.DeleteBackup.Title": "백업 삭제",
   "Dialog.DeleteBackup.Body": "{0}의 이 백업을 영구적으로 삭제할까요?",
+  "Dialog.DeleteBackups.Body": "선택한 {0}개의 백업을 영구적으로 삭제할까요?",
   "Dialog.Confirm": "확인",
   "Dialog.Cancel": "취소",
 

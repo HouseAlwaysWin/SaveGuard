@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using SaveGuard.Models;
@@ -89,7 +92,7 @@ public sealed class BackupEngine
 
             Directory.CreateDirectory(dest);
 
-            var (files, bytes) = CopyTree(p.WatchPath, dest, ct);
+            var (files, bytes) = CopyTree(p.WatchPath, dest, ct, excludePatterns: p.ExcludeList());
 
             // Also grab any companion files that live outside the watch folder.
             var (cFiles, cBytes) = CaptureCompanions(p, dest, ct);
@@ -130,7 +133,7 @@ public sealed class BackupEngine
                 Directory.EnumerateFileSystemEntries(p.WatchPath).Any())
             {
                 CreateSnapshotAsync(p, "pre-restore", ct).GetAwaiter().GetResult();
-                ClearDirectoryContents(p.WatchPath);
+                ClearDirectoryContents(p.WatchPath, p.ExcludeList());
             }
             else
             {
@@ -139,7 +142,10 @@ public sealed class BackupEngine
 
             // Copy the save tree back in, but skip the snapshot's bookkeeping —
             // the marker and the companion store must NOT pollute the save folder.
-            CopyTree(snap.FolderPath, p.WatchPath, ct, skipTopLevel: BookkeepingTop());
+            // Also skip excluded paths: if an OLD snapshot still contains a file that
+            // is now excluded, copying it back would clobber the preserved live copy.
+            CopyTree(snap.FolderPath, p.WatchPath, ct,
+                skipTopLevel: BookkeepingTop(), excludePatterns: p.ExcludeList());
 
             // Put each companion file back at its own original absolute path.
             RestoreCompanions(snap.FolderPath);
@@ -225,17 +231,26 @@ public sealed class BackupEngine
     /// <summary>Recursively copies sourceDir into destDir. Any relative path whose
     /// first segment is in <paramref name="skipTopLevel"/> is skipped entirely
     /// (used to leave the _companions/ store and the marker out of a restore).</summary>
-    private static (int files, long bytes) CopyTree(string sourceDir, string destDir, CancellationToken ct, ISet<string>? skipTopLevel = null)
+    private static (int files, long bytes) CopyTree(string sourceDir, string destDir, CancellationToken ct,
+        ISet<string>? skipTopLevel = null, IReadOnlyList<string>? excludePatterns = null)
     {
         int files = 0; long bytes = 0;
+        bool hasExcludes = excludePatterns is { Count: > 0 };
         Directory.CreateDirectory(destDir);
 
-        foreach (var dir in Directory.EnumerateDirectories(sourceDir, "*", SearchOption.AllDirectories))
+        // Mirror empty directories so intentionally-empty folders survive. We skip this
+        // when excludes are active: pre-creating dirs would leak an empty excluded-subtree
+        // folder (e.g. "cache" for "cache/**"). With excludes, directories are instead
+        // created lazily as their non-excluded files are copied below.
+        if (!hasExcludes)
         {
-            ct.ThrowIfCancellationRequested();
-            var rel = Path.GetRelativePath(sourceDir, dir);
-            if (skipTopLevel != null && skipTopLevel.Contains(TopSegment(rel))) continue;
-            Directory.CreateDirectory(Path.Combine(destDir, rel));
+            foreach (var dir in Directory.EnumerateDirectories(sourceDir, "*", SearchOption.AllDirectories))
+            {
+                ct.ThrowIfCancellationRequested();
+                var rel = Path.GetRelativePath(sourceDir, dir);
+                if (skipTopLevel != null && skipTopLevel.Contains(TopSegment(rel))) continue;
+                Directory.CreateDirectory(Path.Combine(destDir, rel));
+            }
         }
 
         foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories))
@@ -243,6 +258,7 @@ public sealed class BackupEngine
             ct.ThrowIfCancellationRequested();
             var rel = Path.GetRelativePath(sourceDir, file);
             if (skipTopLevel != null && skipTopLevel.Contains(TopSegment(rel))) continue;
+            if (hasExcludes && IsExcluded(rel, excludePatterns!)) continue;
 
             var target = Path.Combine(destDir, rel);
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
@@ -388,6 +404,84 @@ public sealed class BackupEngine
         catch { return Array.Empty<string>(); }
     }
 
+    // ---------- exclude patterns (inside the watch folder) ----------
+
+    private static readonly ConcurrentDictionary<string, Regex> GlobCache = new();
+
+    /// <summary>
+    /// True if a file at <paramref name="relativePath"/> (relative to the watch folder)
+    /// matches any exclude pattern. A pattern with no "/" matches a path segment — a file
+    /// OR folder name — at any depth (e.g. <c>*.log</c>, <c>Thumbs.db</c>, <c>cache</c>);
+    /// a pattern with "/" matches the relative path from the watch folder, where <c>**</c>
+    /// spans subfolders and <c>*</c>/<c>?</c> stay within one segment (e.g. <c>logs/*.txt</c>,
+    /// <c>cache/**</c>). A trailing "/" restricts a name pattern to folders.
+    /// </summary>
+    public static bool IsExcluded(string relativePath, IReadOnlyList<string> patterns)
+    {
+        if (patterns.Count == 0) return false;
+        var rel = relativePath.Replace('\\', '/').Trim('/');
+        if (rel.Length == 0) return false;
+
+        var segments = rel.Split('/');
+
+        foreach (var raw in patterns)
+        {
+            var pat = raw.Trim().Replace('\\', '/');
+            bool dirOnly = pat.EndsWith('/');
+            pat = pat.Trim('/');
+            if (pat.Length == 0) continue;
+
+            // Refuse a "match everything" pattern (bare * / ** / ***): excluding the whole
+            // folder would silently produce empty backups, so treat it as a no-op and keep
+            // backing up. Scoped broad excludes like "cache/**" still work (they have a "/").
+            if (!pat.Contains('/') && pat.All(c => c == '*')) continue;
+
+            if (pat.Contains('/'))
+            {
+                // Path pattern anchored at the watch root, plus its whole subtree. A
+                // trailing "/" means folder-only, so it must NOT match a file at that path.
+                if (!dirOnly && GlobMatch(rel, pat)) return true;
+                if (rel.StartsWith(pat + "/", PathComparison)) return true;
+            }
+            else
+            {
+                // Name pattern: match any segment (file or folder) by name.
+                for (int i = 0; i < segments.Length; i++)
+                {
+                    if (!GlobMatch(segments[i], pat)) continue;
+                    // "name/" must match a parent folder, never the file itself.
+                    if (!dirOnly || i < segments.Length - 1) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static bool GlobMatch(string input, string glob) => GlobCache.GetOrAdd(glob, BuildGlobRegex).IsMatch(input);
+
+    private static Regex BuildGlobRegex(string glob)
+    {
+        var sb = new StringBuilder("^");
+        for (int i = 0; i < glob.Length; i++)
+        {
+            char c = glob[i];
+            if (c == '*')
+            {
+                if (i + 1 < glob.Length && glob[i + 1] == '*') { sb.Append(".*"); i++; } // ** spans separators
+                else sb.Append("[^/]*");
+            }
+            else if (c == '?') sb.Append("[^/]");
+            else sb.Append(Regex.Escape(c.ToString()));
+        }
+        sb.Append('$');
+
+        // NonBacktracking guarantees linear-time matching, so a user-typed glob can never
+        // cause catastrophic backtracking (ReDoS) when checked against thousands of files.
+        var opts = RegexOptions.NonBacktracking | RegexOptions.CultureInvariant;
+        if (OperatingSystem.IsWindows()) opts |= RegexOptions.IgnoreCase;
+        return new Regex(sb.ToString(), opts);
+    }
+
     /// <summary>Copy allowing the source to be open elsewhere (game may hold it).</summary>
     private static void CopyFileShared(string source, string dest)
     {
@@ -396,15 +490,36 @@ public sealed class BackupEngine
         src.CopyTo(dst);
     }
 
-    private static void ClearDirectoryContents(string dir)
+    /// <summary>Empties a folder before a restore. Excluded files are LEFT IN PLACE —
+    /// SaveGuard never backs them up and never deletes them on restore.</summary>
+    private static void ClearDirectoryContents(string dir, IReadOnlyList<string> excludePatterns)
     {
-        foreach (var f in Directory.EnumerateFiles(dir))
+        if (excludePatterns.Count == 0)
         {
+            foreach (var f in Directory.EnumerateFiles(dir))
+            {
+                try { File.SetAttributes(f, FileAttributes.Normal); File.Delete(f); } catch { /* skip */ }
+            }
+            foreach (var d in Directory.EnumerateDirectories(dir))
+            {
+                try { Directory.Delete(d, recursive: true); } catch { /* skip */ }
+            }
+            return;
+        }
+
+        // Exclude-aware: delete everything that isn't excluded, then prune empty dirs
+        // (keeping any folder that still holds a preserved excluded file).
+        foreach (var f in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories).ToList())
+        {
+            if (IsExcluded(Path.GetRelativePath(dir, f), excludePatterns)) continue;
             try { File.SetAttributes(f, FileAttributes.Normal); File.Delete(f); } catch { /* skip */ }
         }
-        foreach (var d in Directory.EnumerateDirectories(dir))
+        foreach (var d in Directory.EnumerateDirectories(dir, "*", SearchOption.AllDirectories)
+                                   .OrderByDescending(x => x.Length).ToList())
         {
-            try { Directory.Delete(d, recursive: true); } catch { /* skip */ }
+            // An excluded directory is left untouched, even when empty.
+            if (IsExcluded(Path.GetRelativePath(dir, d), excludePatterns)) continue;
+            try { if (!Directory.EnumerateFileSystemEntries(d).Any()) Directory.Delete(d); } catch { /* skip */ }
         }
     }
 

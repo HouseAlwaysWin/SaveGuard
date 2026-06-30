@@ -56,6 +56,17 @@ public partial class MainWindow : Window
             });
             return files.FirstOrDefault()?.TryGetLocalPath();
         };
+
+        vm.PickFile = async (title, startDir) =>
+        {
+            var options = new FilePickerOpenOptions { Title = title, AllowMultiple = false };
+            var existing = NearestExistingDir(startDir);
+            if (existing != null)
+                options.SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(existing);
+
+            var files = await StorageProvider.OpenFilePickerAsync(options);
+            return files.FirstOrDefault()?.TryGetLocalPath();
+        };
     }
 
     /// <summary>The path itself if it's an existing directory, else its nearest existing

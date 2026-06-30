@@ -64,6 +64,17 @@ public sealed partial class GameProfile : ObservableObject
     /// </summary>
     [ObservableProperty] private string _companionFiles = "";
 
+    /// <summary>
+    /// Files INSIDE the watch folder to leave out of backups (one pattern per line).
+    /// SaveGuard ignores these entirely: they are never copied into a snapshot, and a
+    /// restore leaves the live copy untouched (it won't delete or overwrite them).
+    /// A pattern with no "/" matches by name at any depth (e.g. <c>*.log</c>,
+    /// <c>Thumbs.db</c>, or a folder name like <c>cache</c>); a pattern with "/" matches
+    /// the path relative to the watch folder, where <c>**</c> spans subfolders
+    /// (e.g. <c>logs/*.txt</c>, <c>cache/**</c>).
+    /// </summary>
+    [ObservableProperty] private string _excludePatterns = "";
+
     /// <summary>The Steam AppId this profile was imported from, or 0 when it was
     /// added manually. Used to avoid importing the same game twice.</summary>
     [ObservableProperty] private long _steamAppId;
@@ -92,13 +103,17 @@ public sealed partial class GameProfile : ObservableObject
     public IReadOnlyList<string> ImageExtensionList() => ParseExtensions(ImageExtensions);
 
     /// <summary>The companion patterns, one per non-blank line (trimmed).</summary>
-    public IReadOnlyList<string> CompanionFileList()
+    public IReadOnlyList<string> CompanionFileList() => NonBlankLines(CompanionFiles);
+
+    /// <summary>The exclude patterns, one per non-blank line (trimmed).</summary>
+    public IReadOnlyList<string> ExcludeList() => NonBlankLines(ExcludePatterns);
+
+    private static IReadOnlyList<string> NonBlankLines(string? text)
     {
-        if (string.IsNullOrWhiteSpace(CompanionFiles))
-            return Array.Empty<string>();
+        if (string.IsNullOrWhiteSpace(text)) return Array.Empty<string>();
 
         var list = new List<string>();
-        foreach (var line in CompanionFiles.Split('\n'))
+        foreach (var line in text.Split('\n'))
         {
             var trimmed = line.Trim();
             if (trimmed.Length > 0) list.Add(trimmed);

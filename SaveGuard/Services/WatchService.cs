@@ -102,6 +102,8 @@ public sealed class WatchService : IDisposable
         private readonly GameProfile _p;
         private readonly FileSystemWatcher _fsw;
         private readonly IReadOnlyList<string> _exts;
+        private readonly IReadOnlyList<string> _excludes;
+        private readonly string _root;
         private readonly Timer _timer;
         public Action? Fire;
 
@@ -110,6 +112,8 @@ public sealed class WatchService : IDisposable
             _p = p;
             _fsw = fsw;
             _exts = p.TriggerExtensionList();
+            _excludes = p.ExcludeList();
+            _root = p.WatchPath;
             _timer = new Timer(_ => Fire?.Invoke(), null, Timeout.Infinite, Timeout.Infinite);
         }
 
@@ -120,6 +124,14 @@ public sealed class WatchService : IDisposable
             {
                 var ext = Path.GetExtension(fullPath).ToLowerInvariant();
                 if (!_exts.Contains(ext)) return;
+            }
+            // Don't let an excluded file (e.g. a churning log) trigger a backup.
+            if (_excludes.Count > 0)
+            {
+                string rel;
+                try { rel = Path.GetRelativePath(_root, fullPath); } catch { rel = fullPath; }
+                if (!rel.StartsWith("..", StringComparison.Ordinal) &&
+                    BackupEngine.IsExcluded(rel, _excludes)) return;
             }
             // Reset the quiet timer: only fire once writes go silent.
             _timer.Change(_p.DebounceMs, Timeout.Infinite);

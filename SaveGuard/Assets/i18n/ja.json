@@ -29,6 +29,12 @@
   "How.CompanionWatermark": "例: C:\\…\\PlayerProfiles\\Public\\profile8.lsf （1行に1つ）",
   "How.CompanionHint": "スナップショットのたびに取得し、復元時に元の場所へ戻します。絶対パス、または ** で再帰ワイルドカード。",
 
+  "How.AddFile": "参照して追加…",
+  "How.ExcludeLabel": "バックアップから除外（セーブフォルダー内）",
+  "How.ExcludeWatermark": "例: *.log　または　cache/**　（1行に1パターン）",
+  "How.ExcludeHint": "一致したファイルはスナップショットに含めず、復元時もそのまま残します。「/」なしは任意の階層のファイル名/フォルダー名に一致、「/」ありはセーブフォルダーからの相対パスで、** はサブフォルダーをまたぎます。",
+  "Picker.AddFileTitle": "追加するファイルを選択",
+
   "Section.Backups": "バックアップ",
   "Backups.Refresh": "再読み込み",
   "Backups.OpenFolder": "フォルダーを開く",
@@ -80,6 +86,7 @@
   "Dialog.Restore.Body": "現在のセーブフォルダーをこのバックアップで置き換えますか？\n{0}\n\n現在のセーブはまずスナップショット（「pre-restore」）として保存されるため、この操作は元に戻せます。",
   "Dialog.DeleteBackup.Title": "バックアップを削除",
   "Dialog.DeleteBackup.Body": "{0} のこのバックアップを完全に削除しますか？",
+  "Dialog.DeleteBackups.Body": "選択した {0} 件のバックアップを完全に削除しますか？",
   "Dialog.Confirm": "OK",
   "Dialog.Cancel": "キャンセル",
 

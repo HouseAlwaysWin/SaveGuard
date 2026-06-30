@@ -128,8 +128,8 @@
                     <!-- header: name + watch state + delete (a profile-level action,
                          kept at the very top, away from the backup settings) -->
                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" VerticalAlignment="Center">
-                        <!-- game icon: click the avatar to choose an image, the ✕ badge to clear -->
-                        <Grid Grid.Column="0" Width="44" Height="44" Margin="0,0,14,0" VerticalAlignment="Center">
+                        <!-- game icon: click the avatar to choose an image, the ✕ badge (shown on hover) to clear -->
+                        <Grid Grid.Column="0" Classes="iconcell" Width="44" Height="44" Margin="0,0,14,0" VerticalAlignment="Center">
                             <Button Classes="avatar" Command="{Binding BrowseIconCommand}"
                                     ToolTip.Tip="{loc:Loc Icon.Choose}"
                                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -240,13 +240,35 @@
                             </Grid>
 
                             <StackPanel Spacing="4">
-                                <TextBlock Classes="field" Text="{loc:Loc How.CompanionLabel}" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="field" VerticalAlignment="Center"
+                                               Text="{loc:Loc How.CompanionLabel}" />
+                                    <Button Grid.Column="1" Classes="ghost" Padding="11,5" FontSize="11"
+                                            Content="{loc:Loc How.AddFile}"
+                                            Command="{Binding AddCompanionFileCommand}" />
+                                </Grid>
                                 <TextBox Text="{Binding SelectedProfile.CompanionFiles}"
                                          AcceptsReturn="True" TextWrapping="NoWrap"
                                          MinHeight="58" MaxHeight="120"
                                          VerticalContentAlignment="Top"
                                          PlaceholderText="{loc:Loc How.CompanionWatermark}" />
                                 <TextBlock Classes="field" Text="{loc:Loc How.CompanionHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="field" VerticalAlignment="Center"
+                                               Text="{loc:Loc How.ExcludeLabel}" />
+                                    <Button Grid.Column="1" Classes="ghost" Padding="11,5" FontSize="11"
+                                            Content="{loc:Loc How.AddFile}"
+                                            Command="{Binding AddExcludeFileCommand}" />
+                                </Grid>
+                                <TextBox Text="{Binding SelectedProfile.ExcludePatterns}"
+                                         AcceptsReturn="True" TextWrapping="NoWrap"
+                                         MinHeight="58" MaxHeight="120"
+                                         VerticalContentAlignment="Top"
+                                         PlaceholderText="{loc:Loc How.ExcludeWatermark}" />
+                                <TextBlock Classes="field" Text="{loc:Loc How.ExcludeHint}" TextWrapping="Wrap" />
                             </StackPanel>
                         </StackPanel>
                     </Expander>
@@ -269,8 +291,10 @@
                                 <Border Grid.Column="1" Background="{StaticResource InkBaseBrush}"
                                         BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1"
                                         CornerRadius="8" Padding="2">
-                                    <ListBox ItemsSource="{Binding Snapshots}"
+                                    <ListBox x:Name="SnapshotList"
+                                             ItemsSource="{Binding Snapshots}"
                                              SelectedItem="{Binding SelectedSnapshot}"
+                                             SelectionMode="Multiple"
                                              Background="Transparent" BorderThickness="0"
                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
                                         <ListBox.ItemTemplate>
@@ -308,7 +332,8 @@
                                         Command="{Binding OpenSnapshotFolderCommand}"
                                         IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
                                 <Button Classes="danger" Content="{loc:Loc Common.Delete}"
-                                        Command="{Binding DeleteSnapshotCommand}"
+                                        Command="{Binding DeleteSnapshotsCommand}"
+                                        CommandParameter="{Binding #SnapshotList.SelectedItems}"
                                         IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
                                 <Button Classes="primary" Content="{loc:Loc Backups.RestoreThis}"
                                         Command="{Binding RestoreSelectedCommand}"

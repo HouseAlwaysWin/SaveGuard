@@ -29,6 +29,12 @@
   "How.CompanionWatermark": "例如 C:\\…\\PlayerProfiles\\Public\\profile8.lsf （每行一个路径）",
   "How.CompanionHint": "这些文件会跟着每次快照，还原时放回原本的位置。支持绝对路径，或用 ** 递归通配符。",
 
+  "How.AddFile": "浏览添加…",
+  "How.ExcludeLabel": "备份时排除这些文件（存档文件夹内）",
+  "How.ExcludeWatermark": "例如 *.log　或　cache/**　（每行一个模式）",
+  "How.ExcludeHint": "匹配的文件不会被放进快照，还原时也保留原样不动。没有“/”就匹配任意层级的文件名或文件夹名；有“/”则相对于存档文件夹，** 可跨子文件夹。",
+  "Picker.AddFileTitle": "选择要添加的文件",
+
   "Section.Backups": "备份",
   "Backups.Refresh": "刷新",
   "Backups.OpenFolder": "打开文件夹",
@@ -80,6 +86,7 @@
   "Dialog.Restore.Body": "要用这个备份替换当前的存档文件夹吗？\n{0}\n\n系统会先把当前存档拍一份快照（标记为“pre-restore”），所以这个操作可以撤销。",
   "Dialog.DeleteBackup.Title": "删除备份",
   "Dialog.DeleteBackup.Body": "确定要永久删除 {0} 的这份备份吗？",
+  "Dialog.DeleteBackups.Body": "确定要永久删除选中的 {0} 份备份吗？",
   "Dialog.Confirm": "确定",
   "Dialog.Cancel": "取消",
 
