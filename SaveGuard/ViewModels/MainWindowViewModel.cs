@@ -603,11 +603,17 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             var wasWatching = _watcher.IsWatching(SelectedProfile);
             if (wasWatching) _watcher.Stop(SelectedProfile);
 
+            // Grab the label now: RefreshSnapshots() below clears the bound Snapshots
+            // collection, which makes the ListBox null out SelectedSnapshot — reading it
+            // afterwards would NRE and surface as a bogus "restore failed" (the restore
+            // itself already succeeded at this point).
+            var restoredAt = SelectedSnapshot.TakenAtDisplay;
+
             await _engine.RestoreAsync(SelectedProfile, SelectedSnapshot);
 
             if (wasWatching) _watcher.Start(SelectedProfile);
             RefreshSnapshots();
-            SetStatus("Status.Restored", SelectedSnapshot.TakenAtDisplay);
+            SetStatus("Status.Restored", restoredAt);
         }
         catch (Exception ex)
         {
