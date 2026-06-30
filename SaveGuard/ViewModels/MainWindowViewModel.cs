@@ -60,6 +60,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     /// <summary>Set by the View. Shows the "Import from Steam" dialog for the given VM.</summary>
     public Func<SteamImportViewModel, Task>? ShowSteamImport { get; set; }
 
+    /// <summary>Set by the View. Opens an image file picker, returns the chosen path or null.</summary>
+    public Func<Task<string?>>? PickImage { get; set; }
+
     public ObservableCollection<GameProfile> Profiles { get; } = new();
     public ObservableCollection<Snapshot> Snapshots { get; } = new();
 
@@ -345,6 +348,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 BackupRoot = _store.DefaultBackupRoot,
                 AutoWatch = false, // off until the user confirms the path is right
                 SteamAppId = row.Game.AppId,
+                IconPath = row.IconPath ?? "",
                 TriggerExtensions = row.PresetTriggerExtensions ?? "",
                 CompanionFiles = row.PresetCompanionFiles ?? "",
             };
@@ -385,6 +389,20 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (SelectedProfile == null || PickFolder == null) return;
         var path = await PickFolder(L["Picker.BackupTitle"], SelectedProfile.BackupRoot);
         if (path != null) SelectedProfile.BackupRoot = path;
+    }
+
+    [RelayCommand]
+    private async Task BrowseIcon()
+    {
+        if (SelectedProfile == null || PickImage == null) return;
+        var path = await PickImage();
+        if (path != null) SelectedProfile.IconPath = path;
+    }
+
+    [RelayCommand]
+    private void ClearIcon()
+    {
+        if (SelectedProfile != null) SelectedProfile.IconPath = "";
     }
 
     // ---------- backup / restore commands ----------

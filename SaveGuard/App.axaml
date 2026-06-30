@@ -98,6 +98,45 @@
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="14,9" />
         </Style>
+
+        <!-- The clickable game-icon avatar in the editor header (chromeless button). -->
+        <Style Selector="Button.avatar">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.avatar /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="9" />
+        </Style>
+        <Style Selector="Button.avatar:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.avatar:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!-- Tiny round "clear" badge overlaid on the avatar's corner. -->
+        <Style Selector="Button.badge">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Background" Value="{StaticResource InkBaseBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,-6,-6,0" />
+        </Style>
+        <Style Selector="Button.badge:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        </Style>
     </Application.Styles>
 
 </Application>

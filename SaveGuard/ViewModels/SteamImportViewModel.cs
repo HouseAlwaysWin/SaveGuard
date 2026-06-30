@@ -26,6 +26,9 @@ public sealed partial class SteamGameRow : ObservableObject
     [ObservableProperty] private SaveSource _source = SaveSource.None;
     [ObservableProperty] private bool _alreadyAdded;
 
+    /// <summary>Steam library-cache icon for this game (null = none found).</summary>
+    public string? IconPath { get; init; }
+
     /// <summary>Localized one-line provenance/status shown under the path.</summary>
     [ObservableProperty] private string _statusText = "";
 
@@ -132,6 +135,7 @@ public sealed partial class SteamImportViewModel : ViewModelBase
                 Selected = best != null && !already,
                 PresetTriggerExtensions = best?.TriggerExtensions,
                 PresetCompanionFiles = best?.CompanionFiles,
+                IconPath = _scanner.FindGameIcon(root, g.AppId),
                 StatusText = StatusFor(best?.Source ?? SaveSource.None, already),
             });
         }

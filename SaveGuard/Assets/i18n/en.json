@@ -85,6 +85,10 @@
 
   "Picker.WatchTitle": "Choose the game's save folder",
   "Picker.BackupTitle": "Choose where to store backups",
+  "Picker.IconTitle": "Choose an icon image",
+
+  "Icon.Choose": "Choose icon",
+  "Icon.Clear": "Clear icon",
 
   "Update.Ready": "Update {0} ready",
   "Update.Restart": "Restart to update"

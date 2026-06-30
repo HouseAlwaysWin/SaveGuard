@@ -27,6 +27,16 @@ public class SteamImportWindowTests
     }
 
     [AvaloniaFact]
+    public void MainWindow_loads_xaml_and_resources()
+    {
+        // Loads the full MainWindow axaml (left-rail icon template, editor-header
+        // icon picker, the PathToBitmap converter resource). Throws on malformed
+        // XAML or a missing resource key.
+        var ex = Record.Exception(() => _ = new MainWindow());
+        Assert.Null(ex);
+    }
+
+    [AvaloniaFact]
     public void Curated_database_loads_via_assetloader()
     {
         // Exercises the real avares:// resource path used at app startup.

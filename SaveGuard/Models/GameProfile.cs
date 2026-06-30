@@ -16,7 +16,9 @@ public sealed partial class GameProfile : ObservableObject
     [ObservableProperty] private string _id = Guid.NewGuid().ToString("N");
 
     /// <summary>Display name, e.g. "Baldur's Gate 3 (Honour)".</summary>
-    [ObservableProperty] private string _name = "New profile";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Initial))]
+    private string _name = "New profile";
 
     /// <summary>The game's save folder to watch and snapshot.</summary>
     [ObservableProperty] private string _watchPath = "";
@@ -66,8 +68,24 @@ public sealed partial class GameProfile : ObservableObject
     /// added manually. Used to avoid importing the same game twice.</summary>
     [ObservableProperty] private long _steamAppId;
 
+    /// <summary>Optional path to an image shown as the game's icon in the list and
+    /// editor. Empty = show a letter placeholder. Auto-filled from Steam on import;
+    /// the user can change it or clear it back to the placeholder.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIcon))]
+    private string _iconPath = "";
+
     [JsonIgnore]
     public IReadOnlyList<string> TriggerExtensionListValue => TriggerExtensionList();
+
+    /// <summary>True when a custom icon image is set.</summary>
+    [JsonIgnore]
+    public bool HasIcon => !string.IsNullOrWhiteSpace(IconPath);
+
+    /// <summary>First character of the name, for the placeholder avatar.</summary>
+    [JsonIgnore]
+    public string Initial =>
+        string.IsNullOrWhiteSpace(Name) ? "?" : Name.Trim().Substring(0, 1).ToUpperInvariant();
 
     public IReadOnlyList<string> TriggerExtensionList() => ParseExtensions(TriggerExtensions);
 

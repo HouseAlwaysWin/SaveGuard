@@ -183,6 +183,45 @@ public sealed class SteamLibraryScanner
         catch { return null; }
     }
 
+    // Standard (non-icon) art files in a librarycache app folder; the icon is the
+    // remaining hash-named .jpg.
+    private static readonly HashSet<string> NonIconArt = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "header.jpg", "library_600x900.jpg", "library_600x900_2x.jpg", "library_hero.jpg",
+        "library_hero_blur.jpg", "logo.png", "capsule_231x87.jpg", "page_bg_generated_v6b.jpg",
+    };
+
+    /// <summary>Best-effort path to a game's icon image from Steam's library cache, or
+    /// null. Modern layout: <c>appcache\librarycache\&lt;appid&gt;\&lt;hash&gt;.jpg</c> (the
+    /// square icon); falls back to header art or the older flat <c>&lt;appid&gt;_icon.jpg</c>.</summary>
+    public string? FindGameIcon(string steamRoot, long appId)
+    {
+        var cache = Path.Combine(steamRoot, "appcache", "librarycache");
+        var dir = Path.Combine(cache, appId.ToString());
+        try
+        {
+            if (Directory.Exists(dir))
+            {
+                // The hash-named jpg (not one of the standard art names) is the icon.
+                var icon = Directory.EnumerateFiles(dir, "*.jpg")
+                    .FirstOrDefault(f => !NonIconArt.Contains(Path.GetFileName(f)));
+                if (icon != null) return icon;
+
+                foreach (var fallback in new[] { "header.jpg", "library_600x900.jpg" })
+                {
+                    var p = Path.Combine(dir, fallback);
+                    if (File.Exists(p)) return p;
+                }
+            }
+
+            // Older flat layout.
+            var flat = Path.Combine(cache, $"{appId}_icon.jpg");
+            if (File.Exists(flat)) return flat;
+        }
+        catch { /* unreadable cache — no icon */ }
+        return null;
+    }
+
     /// <summary>Numeric Steam account-id folders under <c>&lt;steamRoot&gt;\userdata</c>
     /// (skips "0" and non-numeric entries). One per account used on this machine.</summary>
     public IReadOnlyList<string> EnumerateSteamUserIds(string steamRoot)

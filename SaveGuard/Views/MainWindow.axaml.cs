@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
+using SaveGuard.Services;
 using SaveGuard.ViewModels;
 
 namespace SaveGuard.Views;
@@ -37,6 +38,23 @@ public partial class MainWindow : Window
             var dialog = new SteamImportWindow { DataContext = ivm };
             dialog.WireDialogs(ivm);
             await dialog.ShowDialog(this);
+        };
+
+        vm.PickImage = async () =>
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Localizer.Instance["Picker.IconTitle"],
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Images")
+                    {
+                        Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.ico" },
+                    },
+                },
+            });
+            return files.FirstOrDefault()?.TryGetLocalPath();
         };
     }
 

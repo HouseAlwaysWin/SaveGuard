@@ -85,6 +85,10 @@
 
   "Picker.WatchTitle": "选择游戏的存档文件夹",
   "Picker.BackupTitle": "选择备份的存放位置",
+  "Picker.IconTitle": "选择图标图片",
+
+  "Icon.Choose": "选择图标",
+  "Icon.Clear": "清除图标",
 
   "Update.Ready": "更新 {0} 已就绪",
   "Update.Restart": "重启以更新"

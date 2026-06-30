@@ -1,9 +1,37 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 namespace SaveGuard.Views;
+
+/// <summary>Loads an image file path into a cached <see cref="Bitmap"/> for icons.
+/// Returns null for blank/missing paths so the placeholder shows through.</summary>
+public sealed class PathToBitmapConverter : IValueConverter
+{
+    public static readonly PathToBitmapConverter Instance = new();
+
+    // Decode each distinct path once; icons are reused across the list and editor.
+    private static readonly Dictionary<string, Bitmap?> Cache = new(StringComparer.OrdinalIgnoreCase);
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string path || string.IsNullOrWhiteSpace(path)) return null;
+        if (Cache.TryGetValue(path, out var cached)) return cached;
+
+        Bitmap? bmp = null;
+        try { if (File.Exists(path)) bmp = new Bitmap(path); }
+        catch { bmp = null; }
+        Cache[path] = bmp;
+        return bmp;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
 
 /// <summary>Maps a snapshot label ("auto"/"manual"/"pre-restore") to a badge brush.</summary>
 public sealed class LabelToBrushConverter : IValueConverter

@@ -15,6 +15,7 @@
     <Window.Resources>
         <v:LabelToBrushConverter x:Key="LabelBrush" />
         <v:WatchLabelToBrushConverter x:Key="WatchBrush" />
+        <v:PathToBitmapConverter x:Key="IconBitmap" />
     </Window.Resources>
 
     <Grid>
@@ -59,14 +60,30 @@
                              Background="Transparent" BorderThickness="0">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="m:GameProfile">
-                                <StackPanel Spacing="2" Margin="2,4">
-                                    <TextBlock Text="{Binding Name}"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontWeight="SemiBold" FontSize="13" />
-                                    <TextBlock Text="{Binding WatchPath}"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="10.5" TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
+                                <Grid ColumnDefinitions="Auto,*" Margin="2,4">
+                                    <Panel Grid.Column="0" Width="30" Height="30" Margin="0,0,9,0"
+                                           VerticalAlignment="Center">
+                                        <Border CornerRadius="7" Background="{StaticResource SurfaceRaisedBrush}"
+                                                BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1">
+                                            <TextBlock Text="{Binding Initial}" FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <Border CornerRadius="7" ClipToBounds="True">
+                                            <Image Source="{Binding IconPath, Converter={StaticResource IconBitmap}}"
+                                                   Stretch="UniformToFill" />
+                                        </Border>
+                                    </Panel>
+                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontWeight="SemiBold" FontSize="13"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding WatchPath}"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="10.5" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -110,19 +127,43 @@
 
                     <!-- header: name + watch state + delete (a profile-level action,
                          kept at the very top, away from the backup settings) -->
-                    <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center">
-                        <TextBox Grid.Column="0" Text="{Binding SelectedProfile.Name}"
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" VerticalAlignment="Center">
+                        <!-- game icon: click the avatar to choose an image, the ✕ badge to clear -->
+                        <Grid Grid.Column="0" Width="44" Height="44" Margin="0,0,14,0" VerticalAlignment="Center">
+                            <Button Classes="avatar" Command="{Binding BrowseIconCommand}"
+                                    ToolTip.Tip="{loc:Loc Icon.Choose}"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Panel>
+                                    <Border CornerRadius="9" Background="{StaticResource SurfaceRaisedBrush}"
+                                            BorderBrush="{StaticResource HairlineBrush}" BorderThickness="1">
+                                        <TextBlock Text="{Binding SelectedProfile.Initial}" FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <Border CornerRadius="9" ClipToBounds="True">
+                                        <Image Source="{Binding SelectedProfile.IconPath, Converter={StaticResource IconBitmap}}"
+                                               Stretch="UniformToFill" />
+                                    </Border>
+                                </Panel>
+                            </Button>
+                            <Button Classes="badge" Content="✕" Command="{Binding ClearIconCommand}"
+                                    IsVisible="{Binding SelectedProfile.HasIcon}"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                    ToolTip.Tip="{loc:Loc Icon.Clear}" />
+                        </Grid>
+                        <TextBox Grid.Column="1" Text="{Binding SelectedProfile.Name}"
                                  FontSize="20" FontWeight="Bold"
                                  Background="Transparent" BorderThickness="0" Padding="0"
+                                 VerticalAlignment="Center"
                                  Foreground="{StaticResource TextPrimaryBrush}" />
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                             <Border Width="8" Height="8" CornerRadius="4"
                                     Background="{Binding WatchStateLabel, Converter={StaticResource WatchBrush}}" />
                             <TextBlock Text="{Binding WatchStateLabel}"
                                        Foreground="{StaticResource TextMutedBrush}" FontSize="12"
                                        VerticalAlignment="Center" />
                         </StackPanel>
-                        <Button Grid.Column="2" Classes="danger" Content="{loc:Loc Header.DeleteGame}"
+                        <Button Grid.Column="3" Classes="danger" Content="{loc:Loc Header.DeleteGame}"
                                 Margin="14,0,0,0" VerticalAlignment="Center"
                                 Command="{Binding DeleteProfileCommand}" />
                     </Grid>
