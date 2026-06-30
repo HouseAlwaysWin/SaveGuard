@@ -144,15 +144,15 @@ public sealed class BackupEngine
             if (!Directory.Exists(snap.FolderPath))
                 throw new InvalidOperationException("That snapshot folder no longer exists.");
 
-            // The game may have deleted the entire save folder (e.g. BG3 wipes an
-            // Honour-mode save on death) — that is *exactly* when a restore is needed,
-            // so we recreate the folder rather than refusing. A pre-restore safety
-            // snapshot is only worth taking when there's actually a live save to
-            // preserve; restoring over an already-gone save has nothing to back up.
+            // Clear the live folder so the restore replaces its contents cleanly. The
+            // game may have deleted the entire save folder (e.g. BG3 wipes an Honour-mode
+            // save on death) — that is *exactly* when a restore is needed — so recreate
+            // it rather than refusing. No pre-restore safety snapshot is taken: it only
+            // piled up the list on repeated restores (the user's own backups are the
+            // recovery point).
             if (Directory.Exists(p.WatchPath) &&
                 Directory.EnumerateFileSystemEntries(p.WatchPath).Any())
             {
-                CreateSnapshotAsync(p, "pre-restore", ct).GetAwaiter().GetResult();
                 ClearDirectoryContents(p.WatchPath, p.ExcludeList());
             }
             else
