@@ -93,6 +93,22 @@
   "Picker.WatchTitle": "Choose the game's save folder",
   "Picker.BackupTitle": "Choose where to store backups",
   "Picker.IconTitle": "Choose an icon image",
+  "Picker.GlobalBackupTitle": "Choose the shared backup folder",
+
+  "Rail.Settings": "⚙  Settings",
+  "Common.Clear": "Clear",
+  "Folders.BackupHint": "With a shared backup folder set (Settings), leave this blank or enter a subfolder. Otherwise enter an absolute path.",
+  "Status.BackupAppliedToAll": "Switched {0} game(s) to the shared backup folder.",
+
+  "Settings.Title": "Settings",
+  "Settings.BackupSection": "SHARED BACKUP FOLDER",
+  "Settings.GlobalBackupLabel": "Shared backup folder (used by all games)",
+  "Settings.GlobalBackupWatermark": "e.g. D:\\SaveBackups   (blank = each game needs its own absolute path)",
+  "Settings.GlobalBackupHint": "When set, a game's backup path can be a relative subfolder or left blank — it goes under this folder. When blank, each game must set its own absolute path.",
+  "Settings.ApplyToAll": "Apply to all games",
+  "Settings.ApplyToAllHint": "Switch every game to the shared folder (clears their individual paths). Existing backups stay where they are.",
+  "Settings.LanguageSection": "LANGUAGE",
+  "Settings.Done": "Done",
 
   "Icon.Choose": "Choose icon",
   "Icon.Clear": "Clear icon",

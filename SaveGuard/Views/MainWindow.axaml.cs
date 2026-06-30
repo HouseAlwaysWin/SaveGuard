@@ -40,6 +40,13 @@ public partial class MainWindow : Window
             await dialog.ShowDialog(this);
         };
 
+        vm.ShowSettings = async svm =>
+        {
+            var dialog = new SettingsWindow { DataContext = svm };
+            dialog.WireDialogs(svm);
+            await dialog.ShowDialog(this);
+        };
+
         vm.PickImage = async () =>
         {
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions

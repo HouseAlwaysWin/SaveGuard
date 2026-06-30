@@ -40,22 +40,42 @@ public sealed class BackupEngine
         public string Original { get; set; } = "";
     }
 
+    /// <summary>Optional shared backup root applied to every profile (set from UiState).
+    /// When set, a profile's BackupRoot may be relative/blank and resolves under it.</summary>
+    public string GlobalBackupRoot { get; set; } = "";
+
+    /// <summary>The effective backup root for a profile: its own BackupRoot when absolute,
+    /// otherwise resolved under the shared <see cref="GlobalBackupRoot"/> (a blank per-game
+    /// path → the shared root itself). When no shared root is set, returns the raw per-game
+    /// value (which validation then requires to be absolute).</summary>
+    public string ResolveBackupRoot(GameProfile p)
+    {
+        var perGame = p.BackupRoot ?? "";
+        if (string.IsNullOrEmpty(GlobalBackupRoot)) return perGame;
+        try { return Path.Combine(GlobalBackupRoot, perGame); } // absolute perGame wins; blank → shared root
+        catch { return perGame; }
+    }
+
     /// <summary>
-    /// Validates a profile's paths. Returns null if OK, otherwise an error
-    /// message. The key invariant: BackupRoot must never sit inside WatchPath
+    /// Validates a profile's paths. Returns null if OK, otherwise an error message.
+    /// The key invariant: the (effective) backup root must never sit inside WatchPath
     /// (that would make us back up our own backups, recursively).
     /// </summary>
-    public static string? ValidateProfile(GameProfile p)
+    public string? ValidateProfile(GameProfile p)
     {
         if (string.IsNullOrWhiteSpace(p.WatchPath))
             return "Watch folder is not set.";
-        if (string.IsNullOrWhiteSpace(p.BackupRoot))
-            return "Backup folder is not set.";
+
+        var effectiveRoot = ResolveBackupRoot(p);
+        if (string.IsNullOrWhiteSpace(effectiveRoot))
+            return "Backup folder is not set. Enter a path, or set a shared backup folder in Settings.";
+        if (!Path.IsPathRooted(effectiveRoot))
+            return "Backup path must be absolute. Set a shared backup folder in Settings to use a relative subfolder here.";
         if (!Directory.Exists(p.WatchPath))
             return $"Watch folder does not exist:\n{p.WatchPath}";
 
         var watch = NormalizeDir(p.WatchPath);
-        var backup = NormalizeDir(p.BackupRoot);
+        var backup = NormalizeDir(effectiveRoot);
 
         if (PathsEqual(watch, backup))
             return "Backup folder cannot be the same as the watch folder.";
@@ -224,7 +244,7 @@ public sealed class BackupEngine
     }
 
     public string ProfileBackupDir(GameProfile p)
-        => Path.Combine(p.BackupRoot, SanitizeFolderName(p.Name));
+        => Path.Combine(ResolveBackupRoot(p), SanitizeFolderName(p.Name));
 
     // ---------- file helpers ----------
 

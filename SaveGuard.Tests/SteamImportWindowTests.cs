@@ -37,6 +37,18 @@ public class SteamImportWindowTests
     }
 
     [AvaloniaFact]
+    public void Settings_dialog_loads_xaml_and_resources()
+    {
+        var vm = new SettingsViewModel();
+        var ex = Record.Exception(() =>
+        {
+            var w = new SettingsWindow { DataContext = vm };
+            w.WireDialogs(vm);
+        });
+        Assert.Null(ex);
+    }
+
+    [AvaloniaFact]
     public void Curated_database_loads_via_assetloader()
     {
         // Exercises the real avares:// resource path used at app startup.

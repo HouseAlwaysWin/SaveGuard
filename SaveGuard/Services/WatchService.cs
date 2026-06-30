@@ -33,7 +33,7 @@ public sealed class WatchService : IDisposable
     public void Start(GameProfile p)
     {
         if (!p.AutoWatch) return;
-        if (BackupEngine.ValidateProfile(p) != null) return;
+        if (_engine.ValidateProfile(p) != null) return;
 
         lock (_gate)
         {

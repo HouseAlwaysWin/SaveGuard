@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveGuard.ViewModels"
+        xmlns:loc="using:SaveGuard.Views"
+        x:Class="SaveGuard.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Width="580" Height="470"
+        MinWidth="480" MinHeight="420"
+        Title="{loc:Loc Settings.Title}"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource InkBaseBrush}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="22">
+
+        <TextBlock Grid.Row="0" Text="{loc:Loc Settings.Title}" FontSize="18" FontWeight="Bold"
+                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16" />
+
+        <StackPanel Grid.Row="1" Spacing="22" VerticalAlignment="Top">
+
+            <!-- shared backup folder -->
+            <StackPanel Spacing="10">
+                <TextBlock Classes="eyebrow" Text="{loc:Loc Settings.BackupSection}" />
+
+                <StackPanel Spacing="4">
+                    <TextBlock Classes="field" Text="{loc:Loc Settings.GlobalBackupLabel}" />
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBox Grid.Column="0" Text="{Binding GlobalBackupRoot}"
+                                 PlaceholderText="{loc:Loc Settings.GlobalBackupWatermark}" />
+                        <Button Grid.Column="1" Classes="ghost" Content="{loc:Loc Common.Browse}"
+                                Margin="8,0,0,0" Command="{Binding BrowseGlobalBackupCommand}" />
+                        <Button Grid.Column="2" Classes="ghost" Content="{loc:Loc Common.Clear}"
+                                Margin="8,0,0,0" Command="{Binding ClearGlobalBackupCommand}"
+                                IsVisible="{Binding HasGlobalRoot}" />
+                    </Grid>
+                    <TextBlock Classes="field" Text="{loc:Loc Settings.GlobalBackupHint}" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <Button Classes="ghost" HorizontalAlignment="Left"
+                            Content="{loc:Loc Settings.ApplyToAll}"
+                            Command="{Binding ApplyToAllCommand}"
+                            IsEnabled="{Binding HasGlobalRoot}" />
+                    <TextBlock Classes="field" Text="{loc:Loc Settings.ApplyToAllHint}" TextWrapping="Wrap" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- language -->
+            <StackPanel Spacing="10">
+                <TextBlock Classes="eyebrow" Text="{loc:Loc Settings.LanguageSection}" />
+                <ComboBox HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding AvailableLanguages}"
+                          SelectedItem="{Binding SelectedLanguage}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,18,0,0">
+            <Button Grid.Column="1" Classes="primary" Content="{loc:Loc Settings.Done}"
+                    Command="{Binding CloseCommand}" />
+        </Grid>
+    </Grid>
+</Window>

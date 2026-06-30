@@ -15,5 +15,10 @@ public sealed partial class UiState : ObservableObject
 
     /// <summary>UI language code (e.g. "en", "zh-Hant"). Empty = follow the OS on first run.</summary>
     [ObservableProperty] private string _language = "";
+
+    /// <summary>Optional shared backup root applied to every game. When set, a profile's
+    /// BackupRoot may be a relative subfolder (or blank) and resolves under this; when
+    /// blank, each profile needs its own absolute BackupRoot. Empty = not used.</summary>
+    [ObservableProperty] private string _globalBackupRoot = "";
 }
 

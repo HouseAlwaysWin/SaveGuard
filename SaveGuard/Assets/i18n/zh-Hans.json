@@ -93,6 +93,22 @@
   "Picker.WatchTitle": "选择游戏的存档文件夹",
   "Picker.BackupTitle": "选择备份的存放位置",
   "Picker.IconTitle": "选择图标图片",
+  "Picker.GlobalBackupTitle": "选择共用备份文件夹",
+
+  "Rail.Settings": "⚙  设置",
+  "Common.Clear": "清除",
+  "Folders.BackupHint": "若已在「设置」中设定共用备份文件夹,这里可留空或填子文件夹;否则请填绝对路径。",
+  "Status.BackupAppliedToAll": "已将 {0} 款游戏改用共用备份文件夹。",
+
+  "Settings.Title": "设置",
+  "Settings.BackupSection": "共用备份文件夹",
+  "Settings.GlobalBackupLabel": "共用备份文件夹(所有游戏共用)",
+  "Settings.GlobalBackupWatermark": "例如 D:\\SaveBackups （留空＝每个游戏都要自己的绝对路径）",
+  "Settings.GlobalBackupHint": "设定后,游戏的备份路径可以是相对子文件夹或留空,会放到这个文件夹下;留空时,每个游戏都必须自己设定绝对路径。",
+  "Settings.ApplyToAll": "套用到所有游戏",
+  "Settings.ApplyToAllHint": "把每个游戏都改成使用共用文件夹(清空各自的路径)。已有的备份会留在原地。",
+  "Settings.LanguageSection": "语言",
+  "Settings.Done": "完成",
 
   "Icon.Choose": "选择图标",
   "Icon.Clear": "清除图标",

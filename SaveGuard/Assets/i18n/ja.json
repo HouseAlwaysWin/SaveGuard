@@ -93,6 +93,22 @@
   "Picker.WatchTitle": "ゲームのセーブフォルダーを選択",
   "Picker.BackupTitle": "バックアップの保存先を選択",
   "Picker.IconTitle": "アイコン画像を選択",
+  "Picker.GlobalBackupTitle": "共有バックアップフォルダーを選択",
+
+  "Rail.Settings": "⚙  設定",
+  "Common.Clear": "クリア",
+  "Folders.BackupHint": "「設定」で共有バックアップフォルダーを設定済みなら、ここは空欄かサブフォルダーでOK。そうでなければ絶対パスを入力してください。",
+  "Status.BackupAppliedToAll": "{0} 本のゲームを共有バックアップフォルダーに切り替えました。",
+
+  "Settings.Title": "設定",
+  "Settings.BackupSection": "共有バックアップフォルダー",
+  "Settings.GlobalBackupLabel": "共有バックアップフォルダー(全ゲーム共通)",
+  "Settings.GlobalBackupWatermark": "例: D:\\SaveBackups （空欄＝各ゲームに絶対パスが必要）",
+  "Settings.GlobalBackupHint": "設定すると、ゲームのバックアップパスは相対サブフォルダーまたは空欄でよく、このフォルダーの下に保存されます。空欄の場合は各ゲームが絶対パスを設定する必要があります。",
+  "Settings.ApplyToAll": "すべてのゲームに適用",
+  "Settings.ApplyToAllHint": "すべてのゲームを共有フォルダーに切り替えます(各自のパスをクリア)。既存のバックアップはそのまま残ります。",
+  "Settings.LanguageSection": "言語",
+  "Settings.Done": "完了",
 
   "Icon.Choose": "アイコンを選択",
   "Icon.Clear": "アイコンをクリア",

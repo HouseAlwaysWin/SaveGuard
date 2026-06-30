@@ -60,6 +60,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     /// <summary>Set by the View. Shows the "Import from Steam" dialog for the given VM.</summary>
     public Func<SteamImportViewModel, Task>? ShowSteamImport { get; set; }
 
+    /// <summary>Set by the View. Shows the Settings dialog for the given VM.</summary>
+    public Func<SettingsViewModel, Task>? ShowSettings { get; set; }
+
     /// <summary>Set by the View. Opens an image file picker, returns the chosen path or null.</summary>
     public Func<Task<string?>>? PickImage { get; set; }
 
@@ -102,6 +105,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     public bool HasPreviewImage => PreviewImage != null;
 
+    /// <summary>Where the selected profile's snapshots actually land, after resolving any
+    /// shared backup folder — shown as a hint under the per-game backup field.</summary>
+    public string EffectiveBackupDir => SelectedProfile == null ? "" : _engine.ProfileBackupDir(SelectedProfile);
+
     public string WatchStateLabel
     {
         get
@@ -113,18 +120,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     }
 
     // ---- language ----
+    // (The picker itself lives in the Settings dialog now; this VM keeps the live
+    // localizer reference and applies the startup language in the constructor.)
     private static Localizer L => Localizer.Instance;
-    public IReadOnlyList<Localizer.LanguageOption> AvailableLanguages => L.AvailableLanguages;
-
-    [ObservableProperty] private Localizer.LanguageOption? _selectedLanguage;
-
-    partial void OnSelectedLanguageChanged(Localizer.LanguageOption? value)
-    {
-        if (value == null) return;
-        L.SetLanguage(value.Code);
-        _ui.Language = value.Code;
-        SaveUi();
-    }
 
     // Remember the current status as a key + args so it can be re-translated live
     // when the language changes (rather than freezing in the old language).
@@ -184,10 +182,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _foldersExpanded = _ui.FoldersExpanded;
         _optionsExpanded = _ui.OptionsExpanded;
         _backupsExpanded = _ui.BackupsExpanded;
+        _engine.GlobalBackupRoot = _ui.GlobalBackupRoot; // shared backup folder, if any
 
         // Apply the saved (or OS-default) language before the window binds its text.
         L.SetLanguage(string.IsNullOrEmpty(_ui.Language) ? DetectSystemLanguage() : _ui.Language);
-        _selectedLanguage = L.AvailableLanguages.FirstOrDefault(l => l.Code == L.CurrentLanguage);
         L.CultureChanged += OnCultureChanged;
         _status = L["Status.Ready"];
 
@@ -252,7 +250,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (_pendingUpdate != null) _updates.ApplyAndRestart(_pendingUpdate);
     }
 
-    partial void OnSelectedProfileChanged(GameProfile? value) => RefreshSnapshots();
+    partial void OnSelectedProfileChanged(GameProfile? value)
+    {
+        OnPropertyChanged(nameof(EffectiveBackupDir));
+        RefreshSnapshots();
+    }
 
     partial void OnSelectedSnapshotChanged(Snapshot? value) => RefreshPreview();
 
@@ -275,7 +277,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         Snapshots.Clear();
         if (SelectedProfile == null) { RefreshPreview(); return; }
-        if (BackupEngine.ValidateProfile(SelectedProfile) != null) { RefreshPreview(); return; }
+        if (_engine.ValidateProfile(SelectedProfile) != null) { RefreshPreview(); return; }
         foreach (var s in _engine.ListSnapshots(SelectedProfile))
             Snapshots.Add(s);
         OnPropertyChanged(nameof(WatchStateLabel));
@@ -342,7 +344,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         var p = new GameProfile
         {
             Name = L["Profile.New"],
-            BackupRoot = _store.DefaultBackupRoot,
+            BackupRoot = NewProfileBackupRoot(),
             AutoWatch = false, // off until the user points it somewhere valid
         };
         Profiles.Add(p);
@@ -370,7 +372,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             {
                 Name = row.Name,
                 WatchPath = row.SavePath,
-                BackupRoot = _store.DefaultBackupRoot,
+                BackupRoot = NewProfileBackupRoot(),
                 AutoWatch = false, // off until the user confirms the path is right
                 SteamAppId = row.Game.AppId,
                 IconPath = row.IconPath ?? "",
@@ -383,6 +385,71 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (last != null) SelectedProfile = last;
         Persist();
         SetStatus("Status.SteamImported", rows.Count);
+    }
+
+    // New profiles use the shared backup folder (blank → resolves under it) when one is
+    // set; otherwise they fall back to the app-data default absolute path.
+    private string NewProfileBackupRoot()
+        => string.IsNullOrEmpty(_engine.GlobalBackupRoot) ? _store.DefaultBackupRoot : "";
+
+    // ---------- settings (shared backup folder + language) ----------
+
+    [RelayCommand]
+    private async Task Settings()
+    {
+        if (ShowSettings == null) return;
+
+        var svm = new SettingsViewModel
+        {
+            GlobalBackupRoot = _ui.GlobalBackupRoot,
+            SelectedLanguage = L.AvailableLanguages.FirstOrDefault(l => l.Code == L.CurrentLanguage),
+        };
+        svm.LanguageChanged += OnSettingsLanguageChanged;
+        svm.ApplyToAllRequested += OnSettingsApplyToAll;
+        try { await ShowSettings(svm); }
+        finally
+        {
+            svm.LanguageChanged -= OnSettingsLanguageChanged;
+            svm.ApplyToAllRequested -= OnSettingsApplyToAll;
+            ApplyGlobalBackupRoot(svm.GlobalBackupRoot); // commit the (possibly edited) shared folder
+        }
+    }
+
+    private void OnSettingsLanguageChanged(string code)
+    {
+        L.SetLanguage(code);
+        _ui.Language = code;
+        SaveUi();
+    }
+
+    private void OnSettingsApplyToAll(string globalRoot)
+    {
+        ApplyGlobalBackupRoot(globalRoot);
+        // Switch every game to the shared folder by clearing its per-game path.
+        foreach (var p in Profiles) p.BackupRoot = "";
+        Persist();
+        RefreshAfterBackupRootChange();
+        SetStatus("Status.BackupAppliedToAll", Profiles.Count);
+    }
+
+    private void ApplyGlobalBackupRoot(string value)
+    {
+        value = (value ?? "").Trim();
+        if (value == _ui.GlobalBackupRoot) return;
+        _ui.GlobalBackupRoot = value;
+        SaveUi();
+        _engine.GlobalBackupRoot = value;
+        RefreshAfterBackupRootChange();
+    }
+
+    // The effective backup path changed for every profile — rebuild watchers (validation
+    // may now pass/fail) and refresh the visible backups list + effective-path hint.
+    private void RefreshAfterBackupRootChange()
+    {
+        foreach (var p in Profiles) _watcher.Refresh(p);
+        RefreshSnapshots();
+        OnPropertyChanged(nameof(WatchStateLabel));
+        OnPropertyChanged(nameof(EffectiveBackupDir));
     }
 
     [RelayCommand]
@@ -491,7 +558,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private async Task BackupNow()
     {
         if (SelectedProfile == null) return;
-        var err = BackupEngine.ValidateProfile(SelectedProfile);
+        var err = _engine.ValidateProfile(SelectedProfile);
         if (err != null) { Status = err; return; }
 
         Busy = true;
@@ -574,6 +641,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private void OpenBackupFolder()
     {
         if (SelectedProfile == null) return;
+        if (_engine.ValidateProfile(SelectedProfile) != null) return; // no valid backup path yet
         var dir = _engine.ProfileBackupDir(SelectedProfile);
         Directory.CreateDirectory(dir);
         OpenInFileManager(dir);
@@ -624,6 +692,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (ReferenceEquals(sender, SelectedProfile) &&
             (name == nameof(GameProfile.Name) || name == nameof(GameProfile.AutoWatch)))
             OnPropertyChanged(nameof(WatchStateLabel));
+        // Keep the effective-backup-path hint in sync as the path/name is edited.
+        if (ReferenceEquals(sender, SelectedProfile) &&
+            (name == nameof(GameProfile.BackupRoot) || name == nameof(GameProfile.Name)))
+            OnPropertyChanged(nameof(EffectiveBackupDir));
         ScheduleSave();
     }
 

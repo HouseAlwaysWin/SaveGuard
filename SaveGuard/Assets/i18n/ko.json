@@ -93,6 +93,22 @@
   "Picker.WatchTitle": "게임의 세이브 폴더 선택",
   "Picker.BackupTitle": "백업을 저장할 위치 선택",
   "Picker.IconTitle": "아이콘 이미지 선택",
+  "Picker.GlobalBackupTitle": "공용 백업 폴더 선택",
+
+  "Rail.Settings": "⚙  설정",
+  "Common.Clear": "지우기",
+  "Folders.BackupHint": "「설정」에서 공용 백업 폴더를 지정했다면 여기는 비우거나 하위 폴더를 입력하세요. 아니면 절대 경로를 입력하세요.",
+  "Status.BackupAppliedToAll": "{0}개의 게임을 공용 백업 폴더로 전환했습니다.",
+
+  "Settings.Title": "설정",
+  "Settings.BackupSection": "공용 백업 폴더",
+  "Settings.GlobalBackupLabel": "공용 백업 폴더 (모든 게임 공통)",
+  "Settings.GlobalBackupWatermark": "예: D:\\SaveBackups (비우면 각 게임에 절대 경로 필요)",
+  "Settings.GlobalBackupHint": "설정하면 게임의 백업 경로는 상대 하위 폴더이거나 비어 있어도 되며 이 폴더 아래에 저장됩니다. 비어 있으면 각 게임이 자체 절대 경로를 설정해야 합니다.",
+  "Settings.ApplyToAll": "모든 게임에 적용",
+  "Settings.ApplyToAllHint": "모든 게임을 공용 폴더로 전환합니다(각자의 경로를 지움). 기존 백업은 그대로 유지됩니다.",
+  "Settings.LanguageSection": "언어",
+  "Settings.Done": "완료",
 
   "Icon.Choose": "아이콘 선택",
   "Icon.Clear": "아이콘 지우기",
