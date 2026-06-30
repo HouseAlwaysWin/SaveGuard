@@ -110,6 +110,18 @@
   "Settings.LanguageSection": "언어",
   "Settings.Done": "완료",
 
+  "Settings.UpdatesSection": "업데이트",
+  "Settings.VersionValue": "현재 버전: {0}",
+  "Settings.Update.Check": "업데이트 확인",
+  "Settings.Update.Apply": "다시 시작하여 적용",
+  "Settings.Update.Idle": "언제든지 새 버전을 확인할 수 있습니다.",
+  "Settings.Update.Checking": "업데이트를 확인하는 중…",
+  "Settings.Update.UpToDate": "최신 상태입니다.",
+  "Settings.Update.Downloading": "업데이트를 다운로드하는 중…",
+  "Settings.Update.Ready": "업데이트 {0} 다운로드 완료 — 다시 시작하여 적용하세요.",
+  "Settings.Update.Failed": "업데이트를 확인할 수 없습니다. 연결을 확인한 후 다시 시도하세요.",
+  "Settings.Update.Unsupported": "업데이트는 설치된 빌드에서만 사용할 수 있습니다.",
+
   "Icon.Choose": "아이콘 선택",
   "Icon.Clear": "아이콘 지우기",
 

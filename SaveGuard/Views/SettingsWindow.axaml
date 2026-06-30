@@ -4,8 +4,8 @@
         xmlns:loc="using:SaveGuard.Views"
         x:Class="SaveGuard.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
-        Width="580" Height="470"
-        MinWidth="480" MinHeight="420"
+        Width="580" Height="560"
+        MinWidth="480" MinHeight="500"
         Title="{loc:Loc Settings.Title}"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource InkBaseBrush}">
@@ -56,6 +56,33 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
+            </StackPanel>
+
+            <!-- updates / version -->
+            <StackPanel Spacing="10">
+                <TextBlock Classes="eyebrow" Text="{loc:Loc Settings.UpdatesSection}" />
+
+                <StackPanel Spacing="8">
+                    <TextBlock Classes="field" Text="{Binding CurrentVersionText}" />
+
+                    <!-- installed builds: manual check + apply -->
+                    <StackPanel Spacing="8" IsVisible="{Binding UpdatesSupported}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="ghost" Content="{loc:Loc Settings.Update.Check}"
+                                    Command="{Binding CheckForUpdatesCommand}"
+                                    IsEnabled="{Binding CanCheck}" />
+                            <Button Classes="primary" Content="{loc:Loc Settings.Update.Apply}"
+                                    Command="{Binding ApplyUpdateCommand}"
+                                    IsVisible="{Binding UpdateReady}" />
+                        </StackPanel>
+                        <TextBlock Classes="field" Text="{Binding UpdateStatusText}" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <!-- dev / xcopy build: updates unavailable -->
+                    <TextBlock Classes="field" TextWrapping="Wrap"
+                               Text="{loc:Loc Settings.Update.Unsupported}"
+                               IsVisible="{Binding !UpdatesSupported}" />
+                </StackPanel>
             </StackPanel>
         </StackPanel>
 

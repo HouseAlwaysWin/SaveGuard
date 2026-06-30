@@ -27,8 +27,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly SteamLibraryScanner _scanner;
     private readonly SaveDatabase _saveDb;
 
-    private Velopack.UpdateInfo? _pendingUpdate;
-
     // ---- auto-save (debounced) ----
     private readonly DispatcherTimer _saveTimer;
     private bool _watcherDirty;    // a watcher-relevant field changed since last flush
@@ -93,13 +91,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _optionsExpanded;
     [ObservableProperty] private bool _backupsExpanded;
 
-    // Auto-update: shown in the status bar once a new version is downloaded.
+    // Auto-update: shown in the status bar once a new version is downloaded. The actual
+    // state lives in UpdateService (shared with the Settings page); this just mirrors it.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(UpdateBannerText))]
     private bool _updateReady;
 
-    private string _updateVersion = "";
-    public string UpdateBannerText => L.Format("Update.Ready", _updateVersion);
+    public string UpdateBannerText => L.Format("Update.Ready", _updates.PendingVersion);
 
     public bool HasProfile => SelectedProfile != null;
 
@@ -171,6 +169,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _watcher = watcher;
         _uiStore = uiStore;
         _updates = updates;
+        _updates.Changed += OnUpdatesChanged;
         _scanner = scanner;
         _saveDb = saveDb;
 
@@ -232,23 +231,19 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private async Task CheckForUpdatesAsync()
     {
-        try
-        {
-            var info = await _updates.CheckAsync();
-            if (info == null) return;
-            await _updates.DownloadAsync(info);
-            _pendingUpdate = info;
-            _updateVersion = info.TargetFullRelease.Version.ToString();
-            UpdateReady = true;
-        }
+        // UpdateService owns the state; the banner refreshes via the Changed event.
+        try { await _updates.CheckAndDownloadAsync(); }
         catch { /* offline / not installed — ignore */ }
     }
 
-    [RelayCommand]
-    private void RestartToUpdate()
+    private void OnUpdatesChanged() => Dispatcher.UIThread.Post(() =>
     {
-        if (_pendingUpdate != null) _updates.ApplyAndRestart(_pendingUpdate);
-    }
+        UpdateReady = _updates.State == UpdateService.UpdateState.Ready;
+        OnPropertyChanged(nameof(UpdateBannerText));
+    });
+
+    [RelayCommand]
+    private void RestartToUpdate() => _updates.ApplyPending();
 
     partial void OnSelectedProfileChanged(GameProfile? value)
     {
@@ -399,7 +394,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (ShowSettings == null) return;
 
-        var svm = new SettingsViewModel
+        var svm = new SettingsViewModel(_updates)
         {
             GlobalBackupRoot = _ui.GlobalBackupRoot,
             SelectedLanguage = L.AvailableLanguages.FirstOrDefault(l => l.Code == L.CurrentLanguage),
@@ -411,6 +406,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             svm.LanguageChanged -= OnSettingsLanguageChanged;
             svm.ApplyToAllRequested -= OnSettingsApplyToAll;
+            svm.Detach(); // unsubscribe from the app-lifetime UpdateService / localizer
             ApplyGlobalBackupRoot(svm.GlobalBackupRoot); // commit the (possibly edited) shared folder
         }
     }

@@ -110,6 +110,18 @@
   "Settings.LanguageSection": "LANGUAGE",
   "Settings.Done": "Done",
 
+  "Settings.UpdatesSection": "UPDATES",
+  "Settings.VersionValue": "Current version: {0}",
+  "Settings.Update.Check": "Check for updates",
+  "Settings.Update.Apply": "Restart & apply",
+  "Settings.Update.Idle": "Check for a newer version any time.",
+  "Settings.Update.Checking": "Checking for updates…",
+  "Settings.Update.UpToDate": "You're up to date.",
+  "Settings.Update.Downloading": "Downloading update…",
+  "Settings.Update.Ready": "Update {0} downloaded — restart to apply.",
+  "Settings.Update.Failed": "Couldn't check for updates. Check your connection and try again.",
+  "Settings.Update.Unsupported": "Updates are only available in the installed build.",
+
   "Icon.Choose": "Choose icon",
   "Icon.Clear": "Clear icon",
 

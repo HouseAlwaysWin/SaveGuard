@@ -110,6 +110,18 @@
   "Settings.LanguageSection": "语言",
   "Settings.Done": "完成",
 
+  "Settings.UpdatesSection": "更新",
+  "Settings.VersionValue": "当前版本：{0}",
+  "Settings.Update.Check": "检查更新",
+  "Settings.Update.Apply": "重启并应用",
+  "Settings.Update.Idle": "可随时检查是否有新版本。",
+  "Settings.Update.Checking": "正在检查更新…",
+  "Settings.Update.UpToDate": "已是最新版本。",
+  "Settings.Update.Downloading": "正在下载更新…",
+  "Settings.Update.Ready": "更新 {0} 已下载 — 重启以应用。",
+  "Settings.Update.Failed": "无法检查更新,请检查网络连接后重试。",
+  "Settings.Update.Unsupported": "更新功能仅在安装版本中可用。",
+
   "Icon.Choose": "选择图标",
   "Icon.Clear": "清除图标",
 

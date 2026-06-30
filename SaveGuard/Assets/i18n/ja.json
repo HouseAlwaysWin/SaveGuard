@@ -110,6 +110,18 @@
   "Settings.LanguageSection": "言語",
   "Settings.Done": "完了",
 
+  "Settings.UpdatesSection": "アップデート",
+  "Settings.VersionValue": "現在のバージョン：{0}",
+  "Settings.Update.Check": "アップデートを確認",
+  "Settings.Update.Apply": "再起動して適用",
+  "Settings.Update.Idle": "いつでも新しいバージョンを確認できます。",
+  "Settings.Update.Checking": "アップデートを確認しています…",
+  "Settings.Update.UpToDate": "最新の状態です。",
+  "Settings.Update.Downloading": "アップデートをダウンロードしています…",
+  "Settings.Update.Ready": "アップデート {0} をダウンロードしました — 再起動して適用してください。",
+  "Settings.Update.Failed": "アップデートを確認できませんでした。接続を確認して再試行してください。",
+  "Settings.Update.Unsupported": "アップデートはインストール版でのみ利用できます。",
+
   "Icon.Choose": "アイコンを選択",
   "Icon.Clear": "アイコンをクリア",
 
