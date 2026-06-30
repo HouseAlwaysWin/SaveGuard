@@ -24,6 +24,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     public bool HasGlobalRoot => !string.IsNullOrWhiteSpace(GlobalBackupRoot);
 
+    /// <summary>App version shown in the dialog footer, e.g. "SaveGuard v1.0.1".</summary>
+    public string VersionText => $"SaveGuard v{UpdateService.CurrentVersion}";
+
     /// <summary>Picker entries: a "follow the OS" auto option (code ""), then each language.</summary>
     public IReadOnlyList<Localizer.LanguageOption> LanguageOptions { get; } =
         new[] { new Localizer.LanguageOption("", L["Settings.LanguageAuto"]) }
